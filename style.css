@@ -1,0 +1,23 @@
+body {
+    background-image: url('/Assets/Mini-background.avif');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+    font-family: Arial;
+}
+h1 {
+    color: white
+}
+a {
+    text-decoration: none;
+    color: royalblue
+}
+.box {
+    background-color: #000000a0;
+    border: 2px solid #3367e1;
+    border-radius: 10px;
+    color: #fff;
+    padding: 10px 15px;
+    margin: 5px
+}
