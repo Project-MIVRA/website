@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-122P6KETQN"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -14,7 +13,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Mini's wishlist</title>
-    <link rel="stylesheet" href="/style.css">
     <meta name="description" content="A small page with things I want">
     <meta name="keywords" content="">
     <meta name="author" content="Mini">
@@ -24,7 +22,7 @@
     <meta property="og:url" content="https://mivra.net/" />
     <meta content="#43B581" data-react-helmet="true" name="theme-color" />
     <meta property="og:site_name" content="Mini's wishlist - Mivra" />
-    <link rel="icon" href="Assets/Mini-1.png">
+    <link rel="icon" href="/Assets/Mini-1.png">
     <script type="application/ld+json">
     {
       "@context" : "https://schema.org",
@@ -33,6 +31,128 @@
       "url" : "https://mivra.net/"
     }
     </script>
+    <style>
+      body {
+          background-color: #f0f2f5; /* Light gray background for better contrast */
+          font-family: 'Inter', sans-serif; /* Using Inter font, ensure it's linked or a fallback is good */
+          margin: 0;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start; /* Align items to the top */
+          min-height: 100vh; /* Ensure body takes at least full viewport height */
+          padding: 20px; /* Add some padding around the page content */
+          box-sizing: border-box; /* Include padding and border in the element's total width and height */
+      }
+
+      .main {
+          width: 90%;
+          max-width: 1200px; /* Max width for larger screens */
+          background-color: transparent; /* Main container transparent, boxes will have color */
+      }
+
+      .box {
+          background-color: white;
+          padding: 25px; /* Increased padding */
+          border-radius: 12px; /* Softer rounded corners */
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer, more diffused shadow */
+          margin-bottom: 20px; /* Space between header box and wishlist box */
+      }
+
+      #mainbox h1 {
+          text-align: center;
+          color: #2c3e50; /* Darker, more professional color */
+          font-size: 2.5em; /* Larger title */
+          margin-bottom: 10px; /* Space below title */
+      }
+
+      #mainbox p {
+          text-align: center;
+          color: #555; /* Slightly lighter text color for description */
+          font-size: 1.1em; /* Slightly larger description text */
+          margin-bottom: 0;
+      }
+
+      .wishlist-grid {
+          display: grid;
+          /* Responsive grid:
+             - 1 column on very small screens (< 600px)
+             - 2 columns on small to medium screens (600px - 900px)
+             - 3 columns on medium to large screens (900px - 1200px)
+             - 4 columns on very large screens (> 1200px)
+          */
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 25px; /* Increased gap between items */
+          list-style: none;
+          padding: 0;
+          margin-top: 0; /* Remove default margin if any */
+      }
+
+      .wishlist-item {
+          background-color: #ffffff;
+          border-radius: 10px; /* Consistent rounded corners */
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07); /* Subtle shadow for cards */
+          overflow: hidden; /* Ensures image corners are also rounded if they overflow */
+          transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
+          display: flex; /* Using flex to better control inner layout */
+          flex-direction: column; /* Stack image and info vertically */
+      }
+
+      .wishlist-item:hover {
+          transform: translateY(-6px); /* Slightly more pronounced lift */
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); /* Enhanced shadow on hover */
+      }
+
+      .wishlist-item a {
+          text-decoration: none;
+          color: #333;
+          display: flex; /* Make the link a flex container */
+          flex-direction: column; /* Stack image and info vertically within the link */
+          height: 100%; /* Make link take full height of the item */
+      }
+
+      .wishlist-item img {
+          width: 100%;
+          height: 200px; /* Fixed height for images */
+          object-fit: cover; /* Cover the area, might crop but maintains aspect ratio */
+          display: block;
+          border-bottom: 1px solid #eee; /* Subtle separator line */
+      }
+
+      .item-info {
+          padding: 15px;
+          flex-grow: 1; /* Allows info to take remaining space if item heights vary */
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between; /* Pushes title to top and potential other info to bottom */
+      }
+
+      .item-title {
+          font-weight: 600; /* Slightly bolder */
+          font-size: 1.05em; /* Slightly adjusted font size */
+          color: #34495e; /* Dark blue-gray for titles */
+          line-height: 1.4; /* Improved readability */
+          margin-bottom: 5px; /* Space below title if there were other elements */
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 600px) {
+          body {
+              padding: 10px;
+          }
+          .box {
+              padding: 15px;
+          }
+          #mainbox h1 {
+              font-size: 2em;
+          }
+          .wishlist-grid {
+              gap: 15px;
+          }
+          .wishlist-item img {
+              height: 180px; /* Adjust image height for smaller screens */
+          }
+      }
+    </style>
   </head>
   <body>
     <div class="main">
@@ -40,107 +160,122 @@
         <h1>Mini's Wishlist</h1>
         <p>Here is a list of links to a few things that I want :3</p>
       </div>
-      <div class="box" style="margin-top:10px">
-        <ul>
-            <li>
-                <a href="https://onigiristore.booth.pm/items/6951621">
-                    <img src="./Items in your cart - BOOTH_files/e73a0a80-2b65-41bb-8457-15c44396fa15_base_resized.jpg" alt="[Easy to get started] Sharo&#39;s tail moves!">
-                    [Easy to get started] Sharo's tail moves!
+      <div class="box" style="margin-top:20px">
+        <ul class="wishlist-grid">
+            <li class="wishlist-item">
+                <a href="https://onigiristore.booth.pm/items/6951621" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/e73a0a80-2b65-41bb-8457-15c44396fa15_base_resized.jpg" alt="[Easy to get started] Sharo's tail moves!" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[Easy to get started] Sharo's tail moves!</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://fluffypaws.booth.pm/items/6591856">
-                    <img src="./Items in your cart - BOOTH_files/36cf6aa3-50ed-46c0-9055-569e97efdd2b_base_resized.jpg" alt="Chalo 🐈 SkullGirly Chothes 🐾 [For Chalo]">
-                    Chalo 🐈 SkullGirly Chothes 🐾 [For Chalo]
+            <li class="wishlist-item">
+                <a href="https://fluffypaws.booth.pm/items/6591856" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/36cf6aa3-50ed-46c0-9055-569e97efdd2b_base_resized.jpg" alt="Chalo 🐈 SkullGirly Chothes 🐾 [For Chalo]" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">Chalo 🐈 SkullGirly Chothes 🐾 [For Chalo]</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://fluffypaws.booth.pm/items/6687826">
-                    <img src="./Items in your cart - BOOTH_files/b0c92918-3967-418f-884d-03250e902513_base_resized.jpg" alt="Chalo🐱Cone of Shame!🐾 - [For Shalo]">
-                    Chalo🐱Cone of Shame!🐾 - [For Shalo]
+            <li class="wishlist-item">
+                <a href="https://fluffypaws.booth.pm/items/6687826" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/b0c92918-3967-418f-884d-03250e902513_base_resized.jpg" alt="Chalo🐱Cone of Shame!🐾 - [For Shalo]" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">Chalo🐱Cone of Shame!🐾 - [For Shalo]</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://fluffyscafe.booth.pm/items/6640794">
-                    <img src="./Items in your cart - BOOTH_files/dc683c04-3e27-43e3-86ed-3e2248f88e7a_base_resized.jpg" alt="[VRChat 3D model] Marine sailor &quot;DeepBlue&quot; for Sharo-kun">
-                    [VRChat 3D model] Marine sailor "DeepBlue" for Sharo-kun
+            <li class="wishlist-item">
+                <a href="https://fluffyscafe.booth.pm/items/6640794" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/dc683c04-3e27-43e3-86ed-3e2248f88e7a_base_resized.jpg" alt="[VRChat 3D model] Marine sailor &quot;DeepBlue&quot; for Sharo-kun" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[VRChat 3D model] Marine sailor "DeepBlue" for Sharo-kun</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://fluffyscafe.booth.pm/items/5127370">
-                    <img src="./Items in your cart - BOOTH_files/ae47d057-705f-4a9b-8741-096d878399a0_base_resized.jpg" alt="[VRChat 3D model] Backpack">
-                    [VRChat 3D model] Backpack
+            <li class="wishlist-item">
+                <a href="https://fluffyscafe.booth.pm/items/5127370" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/ae47d057-705f-4a9b-8741-096d878399a0_base_resized.jpg" alt="[VRChat 3D model] Backpack" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[VRChat 3D model] Backpack</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://fluffyscafe.booth.pm/items/4628768">
-                    <img src="./Items in your cart - BOOTH_files/896f1e25-72b1-415d-9a97-ee70e824a97a_base_resized.jpg" alt="[VRChat 3D model] Shoulder bag">
-                    [VRChat 3D model] Shoulder bag
+            <li class="wishlist-item">
+                <a href="https://fluffyscafe.booth.pm/items/4628768" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/896f1e25-72b1-415d-9a97-ee70e824a97a_base_resized.jpg" alt="[VRChat 3D model] Shoulder bag" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[VRChat 3D model] Shoulder bag</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://love-rabbit.booth.pm/items/6147196">
-                    <img src="./Items in your cart - BOOTH_files/daa8b4c6-4a8b-46ef-ae6b-5132f7587703_base_resized.jpg" alt="[For Sharo-kun] Halter neck inner">
-                    [For Sharo-kun] Halter neck inner
+            <li class="wishlist-item">
+                <a href="https://conoma.booth.pm/items/6679863" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/dbf03a2a-c8e7-491d-b48c-ca637728522d_base_resized.jpg" alt="Sorry sleeping AFK animation" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">Sorry sleeping AFK animation</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://conoma.booth.pm/items/6679863">
-                    <img src="./Items in your cart - BOOTH_files/dbf03a2a-c8e7-491d-b48c-ca637728522d_base_resized.jpg" alt="Sorry sleeping AFK animation">
-                    Sorry sleeping AFK animation
+            <li class="wishlist-item">
+                <a href="https://kenkendog.booth.pm/items/6176050" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/237a2496-bbce-4198-91f7-ae3a1fde5358_base_resized.jpg" alt="Costume [Chalo] Exclusive [VRChat compatible]" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">Costume [Chalo] Exclusive [VRChat compatible]</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://kenkendog.booth.pm/items/6176050">
-                    <img src="./Items in your cart - BOOTH_files/237a2496-bbce-4198-91f7-ae3a1fde5358_base_resized.jpg" alt="Costume [Chalo] Exclusive [VRChat compatible]">
-                    Costume [Chalo] Exclusive [VRChat compatible]
+            <li class="wishlist-item">
+                <a href="https://dragontail.booth.pm/items/6196880" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/fa373052-f78d-44ed-ac1f-b6e87bd90c27_base_resized.jpg" alt="Jiangshi-style costume [MA setting completed]" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">Jiangshi-style costume [MA setting completed]</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://dragontail.booth.pm/items/6196880">
-                    <img src="./Items in your cart - BOOTH_files/fa373052-f78d-44ed-ac1f-b6e87bd90c27_base_resized.jpg" alt="Jiangshi-style costume [MA setting completed]">
-                    Jiangshi-style costume [MA setting completed]
+            <li class="wishlist-item">
+                <a href="https://echodng.booth.pm/items/6108322" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/fe24bda5-de5d-4a02-b02e-76ba90d753b1_base_resized.jpg" alt="[VRChat] Sharo | ◁Face Tracking Addon▷" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[VRChat] Sharo | ◁Face Tracking Addon▷</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://unasunas.booth.pm/items/6145835">
-                    <img src="./Items in your cart - BOOTH_files/8936d5d3-82e5-4c63-8d0e-fda813cb5e4a_base_resized.jpg" alt="Chalo Costume - Warmer Set">
-                    Chalo Costume - Warmer Set
+            <li class="wishlist-item">
+                <a href="https://roinz.booth.pm/items/6119461" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/fb473b16-f108-44bc-8b21-42aab8617d0b_base_resized.jpg" alt="[Corresponding costume] Dolphin Pants &amp; Shirts" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[Corresponding costume] Dolphin Pants &amp; Shirts</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://echodng.booth.pm/items/6108322">
-                    <img src="./Items in your cart - BOOTH_files/fe24bda5-de5d-4a02-b02e-76ba90d753b1_base_resized.jpg" alt="[VRChat] Sharo | ◁Face Tracking Addon▷">
-                    [VRChat] Sharo | ◁Face Tracking Addon▷
+            <li class="wishlist-item">
+                <a href="https://roinz.booth.pm/items/6007782" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/bba38f14-9865-4e4c-b936-919cd968ad07_base_resized.jpg" alt="[Corresponding costume] Halterneck Sweater &amp; Bikini" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[Corresponding costume] Halterneck Sweater &amp; Bikini</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://roinz.booth.pm/items/6119461">
-                    <img src="./Items in your cart - BOOTH_files/fb473b16-f108-44bc-8b21-42aab8617d0b_base_resized.jpg" alt="[Corresponding costume] Dolphin Pants &amp; Shirts">
-                    [Corresponding costume] Dolphin Pants &amp; Shirts
+            <li class="wishlist-item">
+                <a href="https://roinz.booth.pm/items/6816854" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/92c11aff-c198-466f-9bb1-92f90cd6a426_base_resized.jpg" alt="[Corresponding costume] Mikofuku Set + Gohei" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">[Corresponding costume] Mikofuku Set + Gohei</div>
+                    </div>
                 </a>
             </li>
-            <li>
-                <a href="https://roinz.booth.pm/items/6007782">
-                    <img src="./Items in your cart - BOOTH_files/bba38f14-9865-4e4c-b936-919cd968ad07_base_resized.jpg" alt="[Corresponding costume] Halterneck Sweater &amp; Bikini">
-                    [Corresponding costume] Halterneck Sweater &amp; Bikini
-                </a>
-            </li>
-            <li>
-                <a href="https://roinz.booth.pm/items/6816854">
-                    <img src="./Items in your cart - BOOTH_files/92c11aff-c198-466f-9bb1-92f90cd6a426_base_resized.jpg" alt="[Corresponding costume] Mikofuku Set + Gohei">
-                    [Corresponding costume] Mikofuku Set + Gohei
-                </a>
-            </li>
-            <li>
-                <a href="https://mimihouse.booth.pm/items/5593396">
-                    <img src="./Items in your cart - BOOTH_files/8368a73c-234f-4d8e-9f2d-4f56a0404f88_base_resized.jpg" alt="Spice Apron [Supports 8 avatars]">
-                    Spice Apron [Supports 8 avatars]
+            <li class="wishlist-item">
+                <a href="https://mimihouse.booth.pm/items/5593396" target="_blank" rel="noopener noreferrer">
+                    <img src="./Items in your cart - BOOTH_files/8368a73c-234f-4d8e-9f2d-4f56a0404f88_base_resized.jpg" alt="Spice Apron [Supports 8 avatars]" onerror="this.onerror=null;this.src='https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';">
+                    <div class="item-info">
+                        <div class="item-title">Spice Apron [Supports 8 avatars]</div>
+                    </div>
                 </a>
             </li>
         </ul>
       </div>
     </div>
-    <script src="index.js"></script>
-  </body>
+    </body>
 </html>
