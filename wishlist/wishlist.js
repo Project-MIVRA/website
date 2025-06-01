@@ -1,71 +1,53 @@
 // --- Configuration ---
 // IMPORTANT: Replace with your desired admin password
-const ADMIN_PASSWORD = "test"; // CHANGE THIS!
+const ADMIN_PASSWORD = "secret"; // CHANGE THIS!
+const LOCAL_STORAGE_KEY = 'adminUnsavedWishlistItems';
 
 // --- Global State ---
 let wishlistItems = []; // In-memory store for wishlist items
 
 // --- Utility Functions ---
 /**
- * Displays a temporary message to the user.
+ * Displays a message to the user within a designated message box element.
  * @param {string} text - The message to display.
  * @param {'success' | 'error' | 'info'} type - The type of message.
- * @param {HTMLElement|null} [container=document.getElementById('messageBox')] - The message box element.
+ * @param {HTMLElement|null} [targetElement=document.getElementById('messageBox')] - The message box element.
  * @param {boolean} [isSticky=false] - If true, message stays until manually dismissed or page reload.
  */
-function displayMessage(text, type = 'success', container = null, isSticky = false) {
-    const messageBox = container || document.getElementById('messageBox');
+function displayMessage(text, type = 'success', targetElement = null, isSticky = false) {
+    const messageBox = targetElement || document.getElementById('messageBox');
+
     if (!messageBox) {
-        console.warn("Message box element not found for:", text);
-        // Attempt to create a message box if one doesn't exist (basic fallback)
-        // This is a basic fallback and might not look good on all pages.
-        const fallbackMessageBox = document.createElement('div');
-        fallbackMessageBox.style.position = 'fixed';
-        fallbackMessageBox.style.top = '20px';
-        fallbackMessageBox.style.right = '20px';
-        fallbackMessageBox.style.padding = '12px 20px';
-        fallbackMessageBox.style.borderRadius = '8px';
-        fallbackMessageBox.style.color = 'white';
-        fallbackMessageBox.style.zIndex = '2000'; // High z-index
-        fallbackMessageBox.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
-        fallbackMessageBox.style.fontSize = '0.875rem';
-        fallbackMessageBox.style.transform = 'translateX(100%)';
-
-
-        document.body.appendChild(fallbackMessageBox);
-        
-        // Apply type styling
-        if (type === 'success') fallbackMessageBox.style.backgroundColor = '#28a745';
-        else if (type === 'error') fallbackMessageBox.style.backgroundColor = '#dc3545';
-        else if (type === 'info') fallbackMessageBox.style.backgroundColor = '#17a2b8';
-        else fallbackMessageBox.style.backgroundColor = '#333'; // Default
-        
-        fallbackMessageBox.textContent = text;
-        // Trigger animation
-        requestAnimationFrame(() => {
-            fallbackMessageBox.style.opacity = '1';
-            fallbackMessageBox.style.transform = 'translateX(0)';
-        });
-
-        if (!isSticky) {
-            setTimeout(() => {
-                fallbackMessageBox.style.opacity = '0';
-                fallbackMessageBox.style.transform = 'translateX(100%)';
-                setTimeout(() => fallbackMessageBox.remove(), 300); // Remove after transition
-            }, 3500);
-        }
-        return; // Exit since we used the fallback
+        console.warn("Message box element not found for displaying message:", text);
+        // Fallback to a simple console log if no message box is available
+        console.log(`Message (${type}): ${text}`);
+        return;
     }
-    // If original messageBox exists, use it
-    messageBox.textContent = text;
-    messageBox.className = `message-box ${type} show`; // Add 'show' class
 
+    // Clear previous classes and content
+    messageBox.innerHTML = '';
+    messageBox.className = 'message-box-inline'; // Base class for inline messages
+
+    // Create the message content
+    const messageContent = document.createElement('p');
+    messageContent.textContent = text;
+
+    // Apply type-specific styling (could be classes if you have them defined in CSS)
+    messageBox.classList.add(`message-${type}`);
+    
+    messageBox.appendChild(messageContent);
+    messageBox.style.display = 'block'; // Make it visible
+
+    // Auto-hide if not sticky
     if (!isSticky) {
         setTimeout(() => {
-            messageBox.classList.remove('show');
-        }, 3500);
+            messageBox.style.display = 'none';
+            messageBox.innerHTML = ''; // Clear content
+            messageBox.classList.remove(`message-${type}`);
+        }, 4000); // Increased timeout for better readability
     }
 }
+
 
 /**
  * Generates a unique ID for new items (simple version).
@@ -82,7 +64,6 @@ function showCustomConfirm(message) {
         const existingModal = document.getElementById(confirmModalId);
         if (existingModal) existingModal.remove();
 
-        // Using Tailwind-like classes via inline styles for portability if Tailwind isn't on the page
         const modalHTML = `
             <div id="${confirmModalId}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100;">
                 <div style="background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 100%; max-width: 24rem; font-family: 'Inter', sans-serif;">
@@ -111,6 +92,31 @@ function showCustomConfirm(message) {
     });
 }
 
+// --- localStorage Functions for Admin ---
+function saveAdminChangesToLocalStorage() {
+    try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(wishlistItems));
+    } catch (error) {
+        console.error("Error saving changes to localStorage:", error);
+        displayMessage("Could not save unsaved changes locally. Your browser's storage might be full or disabled.", "error", document.getElementById('adminContent')?.querySelector('.flex-col.sm\\:flex-row'), true);
+    }
+}
+
+function loadAdminChangesFromLocalStorage() {
+    try {
+        const savedItems = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedItems) {
+            wishlistItems = JSON.parse(savedItems);
+            return true; // Indicate that items were loaded
+        }
+    } catch (error) {
+        console.error("Error loading changes from localStorage:", error);
+        wishlistItems = []; // Reset if loading fails
+        localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
+    }
+    return false; // Indicate no items were loaded or an error occurred
+}
+
 
 // --- Admin Page Specific Logic ---
 function initializeAdminPage() {
@@ -121,9 +127,10 @@ function initializeAdminPage() {
     const adminContent = document.getElementById('adminContent');
     const addItemForm = document.getElementById('addItemForm');
     const adminWishlistContainer = document.getElementById('adminWishlistContainer');
-    // const adminLoadingMessage = document.getElementById('adminLoadingMessage'); // Already handled by loadWishlistData
     const logoutButton = document.getElementById('logoutButton');
     const saveWishlistButton = document.getElementById('saveWishlistButton');
+    const adminMessageBox = adminContent ? adminContent.querySelector('#messageBox') : document.getElementById('messageBox'); // Prefer message box within admin content
+
 
     if (!passwordModal) return; // Not on the admin page
 
@@ -131,7 +138,12 @@ function initializeAdminPage() {
     if (sessionStorage.getItem('isAdminAuthenticated') === 'true') {
         passwordModal.style.display = 'none';
         adminContent.classList.remove('hidden');
-        loadWishlistData(true); // Load for admin
+        if (loadAdminChangesFromLocalStorage()) {
+            displayMessage("Loaded unsaved changes from your previous session.", "info", adminMessageBox, false);
+            renderAdminItems(); // Render items loaded from localStorage
+        } else {
+            loadWishlistData(true); // Load from wishlist-data.json if no local changes
+        }
     } else {
         passwordModal.style.display = 'flex';
         adminContent.classList.add('hidden');
@@ -143,28 +155,43 @@ function initializeAdminPage() {
             passwordModal.style.display = 'none';
             adminContent.classList.remove('hidden');
             passwordError.textContent = '';
-            loadWishlistData(true); // Load for admin
-            displayMessage("Login successful!", "success", adminContent.querySelector('.flex-col.sm\\:flex-row'));
+            if (loadAdminChangesFromLocalStorage()) {
+                displayMessage("Login successful! Loaded unsaved changes from your previous session.", "success", adminMessageBox, false);
+                renderAdminItems();
+            } else {
+                displayMessage("Login successful!", "success", adminMessageBox, false);
+                loadWishlistData(true); 
+            }
         } else {
             passwordError.textContent = 'Incorrect password.';
             passwordInput.value = '';
-            displayMessage("Login failed: Incorrect password.", "error", passwordModal.querySelector('.modal-content'));
+            // Display login error within the password modal itself
+            const passwordModalContent = passwordModal.querySelector('.modal-content');
+            const modalMessageBox = passwordModalContent.querySelector('#modalMessageBox') || document.createElement('div');
+            if (!modalMessageBox.id) {
+                 modalMessageBox.id = 'modalMessageBox';
+                 modalMessageBox.className = 'message-box-inline mt-3'; // Add some margin
+                 passwordModalContent.appendChild(modalMessageBox);
+            }
+            displayMessage("Login failed: Incorrect password.", "error", modalMessageBox, false);
         }
     });
 
     logoutButton.addEventListener('click', () => {
         sessionStorage.removeItem('isAdminAuthenticated');
+        // Optionally, ask if user wants to clear unsaved local changes
+        // localStorage.removeItem(LOCAL_STORAGE_KEY); 
         passwordModal.style.display = 'flex';
         adminContent.classList.add('hidden');
-        wishlistItems = []; // Clear in-memory data on logout
+        wishlistItems = []; 
         if(adminWishlistContainer) adminWishlistContainer.innerHTML = '<p id="adminLoadingMessage" class="text-gray-500 col-span-full">Logged out. Please log in to manage items.</p>';
-        displayMessage("Logged out successfully.", "info");
+        displayMessage("Logged out successfully.", "info", adminMessageBox);
     });
 
     addItemForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (sessionStorage.getItem('isAdminAuthenticated') !== 'true') {
-            displayMessage("Authentication required.", "error", addItemForm);
+            displayMessage("Authentication required.", "error", adminMessageBox);
             return;
         }
 
@@ -175,12 +202,12 @@ function initializeAdminPage() {
         const itemLink = document.getElementById('itemLink').value.trim();
 
         if (!itemName || !itemLink) {
-            displayMessage("Item Name and Product Link are required.", "error", addItemForm);
+            displayMessage("Item Name and Product Link are required.", "error", addItemForm.querySelector('#messageBox') || adminMessageBox);
             return;
         }
 
         const newItem = {
-            id: generateId(), // Simple unique ID
+            id: generateId(), 
             name: itemName,
             description: itemDescription,
             imageUrl: itemImage,
@@ -188,49 +215,48 @@ function initializeAdminPage() {
             link: itemLink,
             addedAt: new Date().toISOString()
         };
-        wishlistItems.unshift(newItem); // Add to the beginning of the array
+        wishlistItems.unshift(newItem); 
+        saveAdminChangesToLocalStorage(); // Save to localStorage
         renderAdminItems();
         addItemForm.reset();
-        displayMessage("Item added to current session. Remember to Save & Download.", "success", addItemForm);
+        displayMessage("Item added. Changes saved locally. Remember to 'Save & Download Data' to make them public.", "success", addItemForm.querySelector('#messageBox') || adminMessageBox);
     });
 
     saveWishlistButton.addEventListener('click', () => {
         if (sessionStorage.getItem('isAdminAuthenticated') !== 'true') {
-            displayMessage("Authentication required.", "error", adminContent.querySelector('.flex-col.sm\\:flex-row'));
+            displayMessage("Authentication required.", "error", adminMessageBox);
             return;
         }
-        const jsonData = JSON.stringify(wishlistItems, null, 2); // Pretty print JSON
+        const jsonData = JSON.stringify(wishlistItems, null, 2); 
         const blob = new Blob([jsonData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = "wishlist-data.json"; // The file should always be named this
+        a.download = "wishlist-data.json"; 
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        displayMessage(`Data prepared for download as wishlist-data.json. Upload it to the main 'wishlist/' directory.`, "info", adminContent.querySelector('.flex-col.sm\\:flex-row'), true);
+        displayMessage(`Data prepared for download as wishlist-data.json. Upload it to the main 'wishlist/' directory to make changes public. Your local unsaved changes are still preserved.`, "info", adminMessageBox, true);
+        // localStorage.removeItem(LOCAL_STORAGE_KEY); // Optionally clear local storage after download
     });
 
-    function renderAdminItems() { // This function renders items for the admin page
+    function renderAdminItems() { 
         if (!adminWishlistContainer) return;
-        const loadingMsg = document.getElementById('adminLoadingMessage'); // This ID is in admin/index.html
+        const loadingMsg = document.getElementById('adminLoadingMessage'); 
         if (loadingMsg) loadingMsg.style.display = 'none';
         
-        adminWishlistContainer.innerHTML = ''; // Clear previous items
+        adminWishlistContainer.innerHTML = ''; 
 
         if (wishlistItems.length === 0) {
-            adminWishlistContainer.innerHTML = '<p class="text-gray-500 col-span-full">No wishlist items yet. Add some using the form above.</p>';
+            adminWishlistContainer.innerHTML = '<p class="text-gray-500 col-span-full">No wishlist items yet. Add some using the form above. Unsaved changes are stored locally.</p>';
             return;
         }
         
-        // Sort by addedAt descending (newest first) before rendering
         const sortedItems = [...wishlistItems].sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
-
 
         sortedItems.forEach(item => {
             const itemElement = document.createElement('div');
-            // Admin items use Tailwind classes as defined in admin.html context
             itemElement.className = 'bg-white p-4 rounded-lg shadow-md flex flex-col justify-between'; 
             itemElement.innerHTML = `
                 ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" class="w-full h-40 object-cover rounded-md mb-3" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"> <div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded-md mb-3 text-gray-400" style="display:none;">No Image</div>` : '<div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded-md mb-3 text-gray-400">No Image</div>'}
@@ -245,55 +271,50 @@ function initializeAdminPage() {
             adminWishlistContainer.appendChild(itemElement);
         });
 
-        // Add event listeners to new delete buttons
         document.querySelectorAll('.delete-item-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const itemId = e.target.dataset.id;
-                if (await showCustomConfirm("Are you sure you want to delete this item from the current session? This won't be final until you Save & Download.")) {
+                if (await showCustomConfirm("Are you sure you want to delete this item? This will remove it from your locally saved changes.")) {
                     wishlistItems = wishlistItems.filter(item => item.id !== itemId);
+                    saveAdminChangesToLocalStorage(); // Save to localStorage
                     renderAdminItems();
-                    displayMessage("Item removed from current session. Save & Download to make changes permanent.", "info", adminContent.querySelector('.flex-col.sm\\:flex-row'));
+                    displayMessage("Item removed and local changes saved. 'Save & Download Data' to make public.", "info", adminMessageBox);
                 }
             });
         });
     }
-    window.renderAdminItems = renderAdminItems; // Make it accessible for loadWishlistData
+    window.renderAdminItems = renderAdminItems; 
 }
 
 
 // --- Public Wishlist Page Specific Logic ---
 function initializePublicWishlistPage() {
     const publicWishlistContainer = document.getElementById('publicWishlistContainer');
-    const publicLoadingMessage = document.getElementById('publicLoadingMessage'); // This ID is in public index.html
+    const publicLoadingMessage = document.getElementById('publicLoadingMessage'); 
 
-    if (!publicWishlistContainer) return; // Not on the public wishlist page
+    if (!publicWishlistContainer) return; 
 
-    loadWishlistData(false); // Load for public display
+    loadWishlistData(false); 
 
     function renderPublicItems() {
-        if (!publicWishlistContainer) return; // Guard against race conditions or missing element
+        if (!publicWishlistContainer) return; 
         if (publicLoadingMessage) publicLoadingMessage.style.display = 'none';
-        publicWishlistContainer.innerHTML = ''; // Clear previous items
+        publicWishlistContainer.innerHTML = ''; 
 
         if (wishlistItems.length === 0) {
-            // Re-insert the loading message if the list is empty, styled as per the original HTML
             publicWishlistContainer.innerHTML = '<p id="publicLoadingMessage" style="color: #FFFFFF; text-align: center; font-size: 1.2em; padding: 40px 0; width: 100%;">My wishlist is currently empty. Check back soon!</p>';
             return;
         }
         
-        // Sort by addedAt descending (newest first) before rendering
         const sortedItems = [...wishlistItems].sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
 
         sortedItems.forEach(item => {
             const itemElement = document.createElement('li');
-            itemElement.className = 'wishlist-item'; // Matches user's CSS from public index.html
+            itemElement.className = 'wishlist-item'; 
 
             const placeholderImage = 'https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';
-            // Use item.imageUrl if available, otherwise use the placeholder.
-            // The onerror in the img tag will also catch broken item.imageUrl links.
             const imageSrc = item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : placeholderImage;
 
-            // Constructing innerHTML to match the user's provided structure for public items
             itemElement.innerHTML = `
                 <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer">
                     <img src="${imageSrc}" alt="${item.name || 'Wishlist Item'}" onerror="this.onerror=null;this.src='${placeholderImage}';">
@@ -307,56 +328,52 @@ function initializePublicWishlistPage() {
             publicWishlistContainer.appendChild(itemElement);
         });
     }
-    window.renderPublicItems = renderPublicItems; // Make it accessible for loadWishlistData
+    window.renderPublicItems = renderPublicItems; 
 }
 
 // --- Common Data Loading Function ---
 async function loadWishlistData(isAdminPage) {
+    const adminMessageBox = document.getElementById('adminContent') ? document.getElementById('adminContent').querySelector('#messageBox') : null;
+    const publicMessageBox = document.getElementById('publicWishlistContainer') ? document.getElementById('messageBox') : null; // Assuming #messageBox is global for public page
+    
     const loadingMessageElement = isAdminPage 
-        ? document.getElementById('adminLoadingMessage') // In wishlist/admin/index.html
-        : document.getElementById('publicLoadingMessage'); // In wishlist/index.html
+        ? document.getElementById('adminLoadingMessage') 
+        : document.getElementById('publicLoadingMessage'); 
 
-    // Determine the correct path to wishlist-data.json
-    // The data file is always in the main 'wishlist/' directory.
     const dataFilePath = isAdminPage ? "../wishlist-data.json" : "wishlist-data.json";
-    const dataFileDisplayName = "wishlist-data.json"; // For messages, always refer to the actual filename
+    const dataFileDisplayName = "wishlist-data.json"; 
+
+    // If on admin page and local storage has items, don't fetch from JSON unless forced (e.g., after clearing local)
+    // This check is now primarily handled in initializeAdminPage before calling loadWishlistData.
+    // loadWishlistData is now mainly for fetching the public JSON or as a fallback.
 
     try {
-        const response = await fetch(dataFilePath + `?t=${new Date().getTime()}`); // Cache buster
+        const response = await fetch(dataFilePath + `?t=${new Date().getTime()}`); 
         if (response.ok) {
             const data = await response.json();
+            // Only update wishlistItems if not on admin page OR if admin page has no local changes it's relying on.
+            // For admin page, if it reaches here, it means no local changes were loaded, so it's safe to use fetched data.
             wishlistItems = Array.isArray(data) ? data : [];
-             // Ensure loadingMessageElement's parent exists before trying to show message there
-             if (loadingMessageElement && loadingMessageElement.parentElement) {
-                displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", loadingMessageElement.parentElement, false);
-             } else if (isAdminPage && document.getElementById('adminContent')) { // Fallback for admin page
-                displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", document.getElementById('adminContent').querySelector('.flex-col.sm\\:flex-row'), false);
-             } else { // General fallback
-                displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", null, false);
-             }
+            const msgBox = isAdminPage ? adminMessageBox : publicMessageBox;
+            displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", msgBox, false);
+             
         } else if (response.status === 404) {
+            // If file not found, and it's the admin page, it will rely on localStorage or start empty.
+            // If it's public page, it will show empty.
             wishlistItems = []; 
-            if (loadingMessageElement && loadingMessageElement.parentElement) {
-                displayMessage(`${dataFileDisplayName} not found at ${dataFilePath}. Starting with an empty wishlist. Admin can save data to create it.`, "info", loadingMessageElement.parentElement, isAdminPage);
-            } else if (isAdminPage && document.getElementById('adminContent')) {
-                displayMessage(`${dataFileDisplayName} not found at ${dataFilePath}. Starting with an empty wishlist. Admin can save data to create it.`, "info", document.getElementById('adminContent').querySelector('.flex-col.sm\\:flex-row'), isAdminPage);
-            } else {
-                 displayMessage(`${dataFileDisplayName} not found at ${dataFilePath}. Starting with an empty wishlist. Admin can save data to create it.`, "info", null, isAdminPage);
-            }
+            const msgBox = isAdminPage ? adminMessageBox : publicMessageBox;
+            displayMessage(`${dataFileDisplayName} not found. Starting with an empty wishlist. ${isAdminPage ? 'Admin can add items and "Save & Download Data" to create it.' : ''}`, "info", msgBox, isAdminPage);
+            
         } else {
             throw new Error(`HTTP error ${response.status} when fetching ${dataFilePath}`);
         }
     } catch (error) {
         console.error(`Error loading ${dataFileDisplayName} from ${dataFilePath}:`, error);
         wishlistItems = []; 
-        if (loadingMessageElement && loadingMessageElement.parentElement) {
-            displayMessage(`Could not load wishlist data from ${dataFileDisplayName}. Error: ${error.message}`, "error", loadingMessageElement.parentElement, true);
-        } else if (isAdminPage && document.getElementById('adminContent')) {
-            displayMessage(`Could not load wishlist data from ${dataFileDisplayName}. Error: ${error.message}`, "error", document.getElementById('adminContent').querySelector('.flex-col.sm\\:flex-row'), true);
-        } else {
-            displayMessage(`Could not load wishlist data from ${dataFileDisplayName}. Error: ${error.message}`, "error", null, true);
-        }
+        const msgBox = isAdminPage ? adminMessageBox : publicMessageBox;
+        displayMessage(`Could not load wishlist data. Error: ${error.message}`, "error", msgBox, true);
     } finally {
+        // Render based on what's in wishlistItems (either from local, from JSON, or empty)
         if (isAdminPage) {
             if (typeof window.renderAdminItems === 'function') window.renderAdminItems();
         } else {
@@ -368,17 +385,12 @@ async function loadWishlistData(isAdminPage) {
 
 // --- Page Initialization Router ---
 function initializePage() {
-    // Check for an element unique to the admin page (e.g., passwordModal)
-    // The admin page is now at /wishlist/admin/ or /wishlist/admin/index.html
     if (document.getElementById('passwordModal') && window.location.pathname.includes('/admin')) { 
         initializeAdminPage();
     } 
-    // Check for an element unique to the public wishlist page
-    // The public page is at /wishlist/ or /wishlist/index.html
     else if (document.getElementById('publicWishlistContainer')) { 
         initializePublicWishlistPage();
     }
 }
 
-// Run initialization logic when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializePage);
