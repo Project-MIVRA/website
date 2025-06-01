@@ -159,11 +159,12 @@
         width: 100%; /* Ensure it spans the grid area if grid is empty */
       }
 
-      /* Message Box for notifications (from previous versions) */
-      .message-box {
+      /* Message Box for notifications (if needed on public page) */
+      #messageBox { /* This is a general ID, ensure it doesn't conflict if used elsewhere */
             position: fixed;
-            top: 20px;
-            right: 20px;
+            bottom: 20px; /* Changed from top to bottom for public page example */
+            left: 50%;
+            transform: translateX(-50%);
             padding: 12px 20px;
             border-radius: 8px;
             color: white;
@@ -172,12 +173,11 @@
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             font-size: 0.875rem;
             background-color: #333; /* Default background */
-            transform: translateX(100%);
+            /* transform: translateY(100%); /* Initial position for bottom entry */
         }
-        .message-box.success { background-color: #28a745; } /* Green */
-        .message-box.error { background-color: #dc3545; } /* Red */
-        .message-box.info { background-color: #17a2b8; } /* Blue */
-        .message-box.show { opacity: 1; transform: translateX(0); }
+        /* .message-box.show { opacity: 1; transform: translateY(0) translateX(-50%); } */
+        /* Simplified show for #messageBox if it's only for JS-driven messages */
+         .message-box-inline { /* Re-using class from admin for consistency if needed */ }
 
 
       @media (max-width: 600px) {
@@ -200,7 +200,7 @@
     </style>
   </head>
   <body>
-    <div id="messageBox" class="message-box"></div>
+    <div id="messageBox" style="display: none;"></div>
 
     <div class="main">
       <div class="box" id="mainbox">
