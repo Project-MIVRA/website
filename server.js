@@ -34,15 +34,21 @@ async function readWishlistData() {
         // Check if the file exists
         await fs.access(DATA_FILE_PATH);
         const data = await fs.readFile(DATA_FILE_PATH, 'utf8');
+        // If the file is empty or contains only whitespace, treat it as an empty list
+        if (data.trim() === '') {
+            console.log('wishlist-data.json is empty. Starting with an empty list.');
+            return [];
+        }
         return JSON.parse(data);
     } catch (error) {
-        // If file doesn't exist or is invalid JSON, return an empty array
+        // If file doesn't exist, return an empty array
         if (error.code === 'ENOENT') {
             console.log('wishlist-data.json not found. Starting with an empty list.');
-            return []; // Return empty array if file doesn't exist
+            return []; 
         }
+        // For other errors (like malformed JSON that isn't just an empty string), log and return empty.
         console.error('Error reading wishlist data file:', error);
-        return []; // Return empty array on other errors to prevent crashes
+        return []; 
     }
 }
 
@@ -158,13 +164,26 @@ app.get('/', (req, res) => {
 // --- Start Server ---
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-    // Check if wishlist-data.json exists, create if not
-    readWishlistData().then(items => {
-        if (items.length === 0) { // Or if it was just created empty
-            // This ensures the file exists for subsequent writes
+    // Check if wishlist-data.json exists and is valid, create/initialize if not
+    readWishlistData().then(async items => { // Made this callback async
+        // If readWishlistData returned [] because file was non-existent, empty or malformed,
+        // we ensure it's initialized with a valid empty JSON array.
+        const fileExists = await fs.access(DATA_FILE_PATH).then(() => true).catch(() => false);
+        let needsInitialization = !fileExists;
+        if (fileExists) {
+            const currentData = await fs.readFile(DATA_FILE_PATH, 'utf8');
+            if (currentData.trim() === '') { // Also initialize if it exists but is empty
+                needsInitialization = true;
+            }
+        }
+
+        if (needsInitialization) {
+            console.log('Initializing wishlist-data.json with an empty array.');
             return writeWishlistData([]);
         }
     }).catch(err => {
-        console.error("Initial check/create of wishlist-data.json failed:", err);
+        // This catch is for errors during the fs.access or fs.readFile in the .then block,
+        // or if writeWishlistData itself throws an unhandled error.
+        console.error("Error during initial check/creation of wishlist-data.json:", err);
     });
 });
