@@ -1,7 +1,6 @@
 // --- Configuration ---
 // IMPORTANT: Replace with your desired admin password
-const ADMIN_PASSWORD = "YOUR_CHOSEN_ADMIN_PASSWORD"; // CHANGE THIS!
-// WISHLIST_DATA_FILE is now determined dynamically based on page location
+const ADMIN_PASSWORD = "test"; // CHANGE THIS!
 
 // --- Global State ---
 let wishlistItems = []; // In-memory store for wishlist items
@@ -18,8 +17,46 @@ function displayMessage(text, type = 'success', container = null, isSticky = fal
     const messageBox = container || document.getElementById('messageBox');
     if (!messageBox) {
         console.warn("Message box element not found for:", text);
-        return;
+        // Attempt to create a message box if one doesn't exist (basic fallback)
+        // This is a basic fallback and might not look good on all pages.
+        const fallbackMessageBox = document.createElement('div');
+        fallbackMessageBox.style.position = 'fixed';
+        fallbackMessageBox.style.top = '20px';
+        fallbackMessageBox.style.right = '20px';
+        fallbackMessageBox.style.padding = '12px 20px';
+        fallbackMessageBox.style.borderRadius = '8px';
+        fallbackMessageBox.style.color = 'white';
+        fallbackMessageBox.style.zIndex = '2000'; // High z-index
+        fallbackMessageBox.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
+        fallbackMessageBox.style.fontSize = '0.875rem';
+        fallbackMessageBox.style.transform = 'translateX(100%)';
+
+
+        document.body.appendChild(fallbackMessageBox);
+        
+        // Apply type styling
+        if (type === 'success') fallbackMessageBox.style.backgroundColor = '#28a745';
+        else if (type === 'error') fallbackMessageBox.style.backgroundColor = '#dc3545';
+        else if (type === 'info') fallbackMessageBox.style.backgroundColor = '#17a2b8';
+        else fallbackMessageBox.style.backgroundColor = '#333'; // Default
+        
+        fallbackMessageBox.textContent = text;
+        // Trigger animation
+        requestAnimationFrame(() => {
+            fallbackMessageBox.style.opacity = '1';
+            fallbackMessageBox.style.transform = 'translateX(0)';
+        });
+
+        if (!isSticky) {
+            setTimeout(() => {
+                fallbackMessageBox.style.opacity = '0';
+                fallbackMessageBox.style.transform = 'translateX(100%)';
+                setTimeout(() => fallbackMessageBox.remove(), 300); // Remove after transition
+            }, 3500);
+        }
+        return; // Exit since we used the fallback
     }
+    // If original messageBox exists, use it
     messageBox.textContent = text;
     messageBox.className = `message-box ${type} show`; // Add 'show' class
 
@@ -41,16 +78,18 @@ function generateId() {
 function showCustomConfirm(message) {
     return new Promise((resolve) => {
         const confirmModalId = 'customConfirmModal';
+        // Remove existing modal if any to prevent duplicates
         const existingModal = document.getElementById(confirmModalId);
         if (existingModal) existingModal.remove();
 
+        // Using Tailwind-like classes via inline styles for portability if Tailwind isn't on the page
         const modalHTML = `
-            <div id="${confirmModalId}" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-[100]">
-                <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
-                    <p class="text-gray-700 text-lg mb-4">${message}</p>
-                    <div class="flex justify-end space-x-3">
-                        <button id="confirmCancelBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Cancel</button>
-                        <button id="confirmOkBtn" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">OK</button>
+            <div id="${confirmModalId}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100;">
+                <div style="background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 100%; max-width: 24rem; font-family: 'Inter', sans-serif;">
+                    <p style="color: #374151; font-size: 1.125rem; margin-bottom: 1rem; line-height: 1.5;">${message}</p>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                        <button id="confirmCancelBtn" style="padding: 0.5rem 1rem; background-color: #E5E7EB; color: #374151; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">Cancel</button>
+                        <button id="confirmOkBtn" style="padding: 0.5rem 1rem; background-color: #EF4444; color: white; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">OK</button>
                     </div>
                 </div>
             </div>
@@ -75,14 +114,14 @@ function showCustomConfirm(message) {
 
 // --- Admin Page Specific Logic ---
 function initializeAdminPage() {
-    const passwordModal = document.getElementById('passwordModal');
+    const passwordModal = document.getElementById('passwordModal'); 
     const passwordInput = document.getElementById('passwordInput');
     const loginButton = document.getElementById('loginButton');
     const passwordError = document.getElementById('passwordError');
     const adminContent = document.getElementById('adminContent');
     const addItemForm = document.getElementById('addItemForm');
     const adminWishlistContainer = document.getElementById('adminWishlistContainer');
-    const adminLoadingMessage = document.getElementById('adminLoadingMessage'); // Keep for consistency
+    // const adminLoadingMessage = document.getElementById('adminLoadingMessage'); // Already handled by loadWishlistData
     const logoutButton = document.getElementById('logoutButton');
     const saveWishlistButton = document.getElementById('saveWishlistButton');
 
@@ -173,7 +212,7 @@ function initializeAdminPage() {
         displayMessage(`Data prepared for download as wishlist-data.json. Upload it to the main 'wishlist/' directory.`, "info", adminContent.querySelector('.flex-col.sm\\:flex-row'), true);
     });
 
-    function renderAdminItems() {
+    function renderAdminItems() { // This function renders items for the admin page
         if (!adminWishlistContainer) return;
         const loadingMsg = document.getElementById('adminLoadingMessage'); // This ID is in admin/index.html
         if (loadingMsg) loadingMsg.style.display = 'none';
@@ -185,11 +224,14 @@ function initializeAdminPage() {
             return;
         }
         
+        // Sort by addedAt descending (newest first) before rendering
         const sortedItems = [...wishlistItems].sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+
 
         sortedItems.forEach(item => {
             const itemElement = document.createElement('div');
-            itemElement.className = 'bg-white p-4 rounded-lg shadow-md flex flex-col justify-between';
+            // Admin items use Tailwind classes as defined in admin.html context
+            itemElement.className = 'bg-white p-4 rounded-lg shadow-md flex flex-col justify-between'; 
             itemElement.innerHTML = `
                 ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" class="w-full h-40 object-cover rounded-md mb-3" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"> <div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded-md mb-3 text-gray-400" style="display:none;">No Image</div>` : '<div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded-md mb-3 text-gray-400">No Image</div>'}
                 <h3 class="text-lg font-semibold text-gray-700 mb-1 truncate" title="${item.name}">${item.name}</h3>
@@ -203,6 +245,7 @@ function initializeAdminPage() {
             adminWishlistContainer.appendChild(itemElement);
         });
 
+        // Add event listeners to new delete buttons
         document.querySelectorAll('.delete-item-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const itemId = e.target.dataset.id;
@@ -214,7 +257,7 @@ function initializeAdminPage() {
             });
         });
     }
-    window.renderAdminItems = renderAdminItems; 
+    window.renderAdminItems = renderAdminItems; // Make it accessible for loadWishlistData
 }
 
 
@@ -223,46 +266,48 @@ function initializePublicWishlistPage() {
     const publicWishlistContainer = document.getElementById('publicWishlistContainer');
     const publicLoadingMessage = document.getElementById('publicLoadingMessage'); // This ID is in public index.html
 
-    if (!publicWishlistContainer) return; 
+    if (!publicWishlistContainer) return; // Not on the public wishlist page
 
-    loadWishlistData(false); 
+    loadWishlistData(false); // Load for public display
 
     function renderPublicItems() {
+        if (!publicWishlistContainer) return; // Guard against race conditions or missing element
         if (publicLoadingMessage) publicLoadingMessage.style.display = 'none';
-        publicWishlistContainer.innerHTML = ''; 
+        publicWishlistContainer.innerHTML = ''; // Clear previous items
 
         if (wishlistItems.length === 0) {
-            publicWishlistContainer.innerHTML = '<p class="text-gray-500 col-span-full text-center py-10 text-xl">My wishlist is currently empty. Check back soon!</p>';
+            // Re-insert the loading message if the list is empty, styled as per the original HTML
+            publicWishlistContainer.innerHTML = '<p id="publicLoadingMessage" style="color: #FFFFFF; text-align: center; font-size: 1.2em; padding: 40px 0; width: 100%;">My wishlist is currently empty. Check back soon!</p>';
             return;
         }
         
+        // Sort by addedAt descending (newest first) before rendering
         const sortedItems = [...wishlistItems].sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
 
         sortedItems.forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'wishlist-item bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl';
-            const placeholderImageDiv = `<div class="w-full pt-[56.25%] bg-gray-200 flex items-center justify-center text-gray-400 relative"><span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">No Image Available</span></div>`;
-            const imageHTML = item.imageUrl ?
-                `<img src="${item.imageUrl}" alt="${item.name}" class="w-full h-48 sm:h-56 object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='${placeholderImageDiv.replace(/"/g, "&quot;")}';">`
-                : placeholderImageDiv;
+            const itemElement = document.createElement('li');
+            itemElement.className = 'wishlist-item'; // Matches user's CSS from public index.html
 
+            const placeholderImage = 'https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';
+            // Use item.imageUrl if available, otherwise use the placeholder.
+            // The onerror in the img tag will also catch broken item.imageUrl links.
+            const imageSrc = item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : placeholderImage;
+
+            // Constructing innerHTML to match the user's provided structure for public items
             itemElement.innerHTML = `
-                <div class="relative">
-                    ${imageHTML}
-                </div>
-                <div class="p-5 sm:p-6 flex flex-col flex-grow">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2 truncate" title="${item.name}">${item.name}</h3>
-                    <p class="text-sm text-gray-600 mb-3 flex-grow min-h-[40px]">${item.description || 'No description provided.'}</p>
-                    <p class="text-2xl font-bold text-indigo-600 mb-4">${item.price || 'Price not listed'}</p>
-                    <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="mt-auto w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg text-center transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
-                        View Product
-                    </a>
-                </div>
+                <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer">
+                    <img src="${imageSrc}" alt="${item.name || 'Wishlist Item'}" onerror="this.onerror=null;this.src='${placeholderImage}';">
+                    <div class="item-info">
+                        <div class="item-title">${item.name || 'Untitled Item'}</div>
+                        ${item.description ? `<p class="item-description">${item.description}</p>` : '<p class="item-description">No description available.</p>'}
+                        ${item.price ? `<p class="item-price">${item.price}</p>` : '<p class="item-price">Price not listed</p>'}
+                    </div>
+                </a>
             `;
             publicWishlistContainer.appendChild(itemElement);
         });
     }
-    window.renderPublicItems = renderPublicItems; 
+    window.renderPublicItems = renderPublicItems; // Make it accessible for loadWishlistData
 }
 
 // --- Common Data Loading Function ---
@@ -273,8 +318,6 @@ async function loadWishlistData(isAdminPage) {
 
     // Determine the correct path to wishlist-data.json
     // The data file is always in the main 'wishlist/' directory.
-    // If isAdminPage is true, current HTML is wishlist/admin/index.html, so path is '../wishlist-data.json'
-    // If isAdminPage is false, current HTML is wishlist/index.html, so path is 'wishlist-data.json'
     const dataFilePath = isAdminPage ? "../wishlist-data.json" : "wishlist-data.json";
     const dataFileDisplayName = "wishlist-data.json"; // For messages, always refer to the actual filename
 
@@ -283,17 +326,36 @@ async function loadWishlistData(isAdminPage) {
         if (response.ok) {
             const data = await response.json();
             wishlistItems = Array.isArray(data) ? data : [];
-             if (loadingMessageElement) displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", loadingMessageElement.parentElement, false);
+             // Ensure loadingMessageElement's parent exists before trying to show message there
+             if (loadingMessageElement && loadingMessageElement.parentElement) {
+                displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", loadingMessageElement.parentElement, false);
+             } else if (isAdminPage && document.getElementById('adminContent')) { // Fallback for admin page
+                displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", document.getElementById('adminContent').querySelector('.flex-col.sm\\:flex-row'), false);
+             } else { // General fallback
+                displayMessage(`Loaded ${wishlistItems.length} items from ${dataFileDisplayName}.`, "success", null, false);
+             }
         } else if (response.status === 404) {
             wishlistItems = []; 
-            if (loadingMessageElement) displayMessage(`${dataFileDisplayName} not found at ${dataFilePath}. Starting with an empty wishlist. Admin can save data to create it.`, "info", loadingMessageElement.parentElement, isAdminPage);
+            if (loadingMessageElement && loadingMessageElement.parentElement) {
+                displayMessage(`${dataFileDisplayName} not found at ${dataFilePath}. Starting with an empty wishlist. Admin can save data to create it.`, "info", loadingMessageElement.parentElement, isAdminPage);
+            } else if (isAdminPage && document.getElementById('adminContent')) {
+                displayMessage(`${dataFileDisplayName} not found at ${dataFilePath}. Starting with an empty wishlist. Admin can save data to create it.`, "info", document.getElementById('adminContent').querySelector('.flex-col.sm\\:flex-row'), isAdminPage);
+            } else {
+                 displayMessage(`${dataFileDisplayName} not found at ${dataFilePath}. Starting with an empty wishlist. Admin can save data to create it.`, "info", null, isAdminPage);
+            }
         } else {
             throw new Error(`HTTP error ${response.status} when fetching ${dataFilePath}`);
         }
     } catch (error) {
         console.error(`Error loading ${dataFileDisplayName} from ${dataFilePath}:`, error);
         wishlistItems = []; 
-        if (loadingMessageElement) displayMessage(`Could not load wishlist data from ${dataFileDisplayName}. Error: ${error.message}`, "error", loadingMessageElement.parentElement, true);
+        if (loadingMessageElement && loadingMessageElement.parentElement) {
+            displayMessage(`Could not load wishlist data from ${dataFileDisplayName}. Error: ${error.message}`, "error", loadingMessageElement.parentElement, true);
+        } else if (isAdminPage && document.getElementById('adminContent')) {
+            displayMessage(`Could not load wishlist data from ${dataFileDisplayName}. Error: ${error.message}`, "error", document.getElementById('adminContent').querySelector('.flex-col.sm\\:flex-row'), true);
+        } else {
+            displayMessage(`Could not load wishlist data from ${dataFileDisplayName}. Error: ${error.message}`, "error", null, true);
+        }
     } finally {
         if (isAdminPage) {
             if (typeof window.renderAdminItems === 'function') window.renderAdminItems();
@@ -318,4 +380,5 @@ function initializePage() {
     }
 }
 
+// Run initialization logic when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializePage);
