@@ -10,7 +10,7 @@
                 <link rel="stylesheet" type="text/css" href="/style.css"/>
                 <style>
                     body {
-                        background-image: url('/Assets/Error.avif');
+                        background-image: url('Assets/Mini-background.avif');
                         background-repeat: no-repeat;
                         background-attachment: fixed;
                         background-position: center;
