@@ -1,46 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-    <xsl:template match="/">
+  <xsl:template match="/">
     <html>
-    <body>
-        <h3>Test</h3>
-        <table border="0">
-        <tr bgcolor="#9acd32">
-            <th>name</th>
-            <th>size</th>
-            <th>date</th>
-        </tr>
-        <xsl:for-each select="list/*">
-        <xsl:sort select="@mtime"/>
-
-            <xsl:variable name="name">
-                <xsl:value-of select="."/>
-            </xsl:variable>
-            <xsl:variable name="size">
-                <xsl:if test="string-length(@size) &gt; 0">
-                        <xsl:if test="number(@size) &gt; 0">
-                            <xsl:choose>
-                                    <xsl:when test="round(@size div 1024) &lt; 1"><xsl:value-of select="@size" /></xsl:when>
-                                    <xsl:when test="round(@size div 1048576) &lt; 1"><xsl:value-of select="format-number((@size div 1024), '0.0')" />K</xsl:when>
-                                    <xsl:otherwise><xsl:value-of select="format-number((@size div 1048576), '0.00')" />M</xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:if>
-                </xsl:if>
-            </xsl:variable>
-            <xsl:variable name="date">
-                <xsl:value-of select="substring(@mtime,9,2)"/>-<xsl:value-of select="substring(@mtime,6,2)"/>-<xsl:value-of select="substring(@mtime,1,4)"/><xsl:text> </xsl:text>
-                <xsl:value-of select="substring(@mtime,12,2)"/>:<xsl:value-of select="substring(@mtime,15,2)"/>:<xsl:value-of select="substring(@mtime,18,2)"/>
-            </xsl:variable>
-
-        <tr>
-            <td><a href="{$name}"><xsl:value-of select="."/></a></td>
-            <td align="right"><xsl:value-of select="$size"/></td>
-            <td><xsl:value-of select="$date"/></td>
-        </tr>
-
-        </xsl:for-each>
+      <head>
+        <title>Index of <xsl:value-of select="/html/body/h1" /></title>
+        <style>
+          body {
+            font-family: sans-serif;
+            background-color: #1a1a1a;
+            color: #f2f2f2;
+            margin: 0;
+            padding: 2em;
+          }
+          h1 {
+            text-align: center;
+            color: #f2f2f2;
+          }
+          table {
+            width: 80%;
+            margin: 1em auto;
+            border-collapse: collapse;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+          }
+          th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+          }
+          th {
+            background-color: #333;
+          }
+          tr:hover {
+            background-color: #444;
+          }
+          a {
+            color: #61dafb;
+            text-decoration: none;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body>
+        <h1><xsl:value-of select="/html/body/h1" /></h1>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Last Modified</th>
+            <th>Size</th>
+          </tr>
+          <xsl:for-each select="/html/body/pre/a">
+            <tr>
+              <td>
+                <a>
+                  <xsl:attribute name="href">
+                    <xsl:value-of select="@href"/>
+                  </xsl:attribute>
+                  <xsl:value-of select="."/>
+                </a>
+              </td>
+              <td><xsl:value-of select="substring-after(following-sibling::text()[1], ' ')" /></td>
+              <td><xsl:value-of select="substring-after(substring-after(following-sibling::text()[1], ' '), ' ')" /></td>
+            </tr>
+          </xsl:for-each>
         </table>
-    </body>
+      </body>
     </html>
-    </xsl:template>
+  </xsl:template>
 </xsl:stylesheet>
