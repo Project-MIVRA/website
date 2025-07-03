@@ -50,6 +50,7 @@
                         color: #aaa;
                     }
                 </style>
+                <link rel="icon" href="Assets/Mini-1.png">
             </head>
             <body>
                 <div class="main">
