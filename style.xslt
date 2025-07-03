@@ -10,13 +10,17 @@
                 <link rel="stylesheet" type="text/css" href="/style.css"/>
                 <style>
                     body {
-                        background-image: url('/Assets/Mini-background.avif');
+                        background-image: url('/Assets/Error.avif');
                         background-repeat: no-repeat;
                         background-attachment: fixed;
                         background-position: center;
                         background-size: cover;
+                        font-family: Arial, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        padding: 20px;
+                        margin: 0;
                     }
-                    /* Ensure the content box is not centered in the viewport like the main page */
                     .main {
                         width: 90%;
                         max-width: 1200px;
