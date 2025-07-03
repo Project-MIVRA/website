@@ -54,45 +54,51 @@
             <body>
                 <div class="main">
                     <div class="box">
-                        <h1>Index of <xsl:value-of select="/directory/@path"/></h1>
+                        <h1>Index</h1>
                         <table>
                             <tr>
                                 <th>Name</th>
-                                <th class="size">Size</th>
-                                <th class="date">Last Modified</th>
+                                <th style="text-align: right;">Size</th>
+                                <th style="text-align: right;">Date Modified</th>
                             </tr>
-                            <xsl:if test="/directory/@path != '/'">
+                            <xsl:for-each select="/list/*">
+                                <xsl:sort select="@mtime" order="descending"/>
+
+                                <xsl:variable name="name" select="."/>
+                                <xsl:variable name="is-dir" select="substring(@name, string-length(@name)) = '/'"/>
+
+                                <xsl:variable name="size-formatted">
+                                    <xsl:choose>
+                                        <xsl:when test="$is-dir">-</xsl:when>
+                                        <xsl:when test="number(@size) &gt; 1048576">
+                                            <xsl:value-of select="format-number(@size div 1048576, '0.00')"/>M
+                                        </xsl:when>
+                                        <xsl:when test="number(@size) &gt; 1024">
+                                            <xsl:value-of select="format-number(@size div 1024, '0.0')"/>K
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="@size"/>B
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
+
+                                <xsl:variable name="date-formatted">
+                                     <xsl:if test="not($is-dir)">
+                                        <xsl:value-of select="substring-after(@mtime, ', ')"/>
+                                     </xsl:if>
+                                </xsl:variable>
+
                                 <tr>
-                                    <td><a href="..">../</a></td>
-                                    <td class="size">-</td>
-                                    <td class="date">-</td>
+                                    <td><a href="{$name}"><xsl:value-of select="$name"/></a></td>
+                                    <td class="size"><xsl:value-of select="$size-formatted"/></td>
+                                    <td class="date"><xsl:value-of select="$date-formatted"/></td>
                                 </tr>
-                            </xsl:if>
-                            <xsl:apply-templates select="/directory/file"/>
+                            </xsl:for-each>
                         </table>
                     </div>
                 </div>
             </body>
         </html>
-    </xsl:template>
-
-    <xsl:template match="file">
-        <tr>
-            <td>
-                <a>
-                    <xsl:attribute name="href">
-                        <xsl:value-of select="@name"/>
-                    </xsl:attribute>
-                    <xsl:value-of select="@name"/>
-                </a>
-            </td>
-            <td class="size">
-                <xsl:value-of select="@size"/>
-            </td>
-            <td class="date">
-                <xsl:value-of select="@mtime"/>
-            </td>
-        </tr>
     </xsl:template>
 
 </xsl:stylesheet>
