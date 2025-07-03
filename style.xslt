@@ -7,6 +7,7 @@
             <head>
                 <meta charset="UTF-8"/>
                 <title>Index of <xsl:value-of select="/directory/@path"/></title>
+                <link rel="icon" href="/Assets/Mini-1.png">
                 <link rel="stylesheet" type="text/css" href="/style.css"/>
                 <style>
                     body {
@@ -50,7 +51,6 @@
                         color: #aaa;
                     }
                 </style>
-                <link rel="icon" href="Assets/Mini-1.png">
             </head>
             <body>
                 <div class="main">
