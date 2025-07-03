@@ -1,116 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:template match="/">
-    <html>
-      <head>
-        <title>Index of <xsl:value-of select="/html/body/h1" /></title>
-        <style>
-            body {
-                background-image: url('Assets/Mini-background.avif');
-                background-repeat: no-repeat;
-                background-attachment: fixed;
-                background-position: center;
-                background-size: cover;
-                font-family: Arial, sans-serif;
-                display: flex;
-                justify-content: center;
-                padding: 20px;
-                margin: 0;
-            }
-            h1 {
-                color: white;
-                text-align: center;
-            }
+    <xsl:output method="html" doctype-system="about:legacy-compat" encoding="UTF-8" indent="yes"/>
 
-            .box {
-                background-color: #000000a0;
-                border: 2px solid #3367e1;
-                border-radius: 10px;
-                color: #fff;
-                padding: 20px;
-                margin-bottom: 20px;
-            }
+    <xsl:template match="/">
+        <html>
+            <head>
+                <meta charset="UTF-8"/>
+                <title>Index of <xsl:value-of select="/directory/@path"/></title>
+                <link rel="stylesheet" type="text/css" href="/style.css"/>
+                <style>
+                    body {
+                        background-image: url('/Assets/Mini-background.avif');
+                        background-repeat: no-repeat;
+                        background-attachment: fixed;
+                        background-position: center;
+                        background-size: cover;
+                    }
+                    /* Ensure the content box is not centered in the viewport like the main page */
+                    .main {
+                        width: 80%;
+                        max-width: 900px;
+                        margin-top: 50px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                    }
+                    th, td {
+                        padding: 10px 15px;
+                        border-bottom: 1px solid #333;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #2a2a2a;
+                    }
+                    td a {
+                        color: #f2f2f2;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }
+                    td a:hover {
+                        text-decoration: underline;
+                    }
+                    .size, .date {
+                        color: #aaa;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="main">
+                    <div class="box">
+                        <h1>Index of <xsl:value-of select="/directory/@path"/></h1>
+                        <table>
+                            <tr>
+                                <th>Name</th>
+                                <th class="size">Size</th>
+                                <th class="date">Last Modified</th>
+                            </tr>
+                            <xsl:if test="/directory/@path != '/'">
+                                <tr>
+                                    <td><a href="..">../</a></td>
+                                    <td class="size">-</td>
+                                    <td class="date">-</td>
+                                </tr>
+                            </xsl:if>
+                            <xsl:apply-templates select="/directory/file"/>
+                        </table>
+                    </div>
+                </div>
+            </body>
+        </html>
+    </xsl:template>
 
-            .main {
-                width: 90%;
-                max-width: 1200px;
-            }
-
-            .wishlist-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 20px;
-                list-style: none;
-                padding: 0;
-            }
-
-            .wishlist-item {
-                background-color: #000000a0;
-                border: 2px solid #3367e1;
-                border-radius: 10px;
-                overflow: hidden;
-                transition: transform 0.2s ease-in-out;
-                color: #fff;
-            }
-
-            .wishlist-item:hover {
-                transform: translateY(-5px);
-            }
-
-            .wishlist-item a {
-                text-decoration: none;
-                color: inherit;
-                display: block;
-            }
-
-            .wishlist-item img {
-                width: 100%;
-                height: auto;
-                display: block;
-                aspect-ratio: 1 / 1;
-                object-fit: cover;
-            }
-
-            .item-info {
-                padding: 15px;
-                text-align: center;
-            }
-
-            .item-title {
-                font-weight: bold;
-                font-size: 1.1em;
-                color: royalblue;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        </style>
-      </head>
-      <body>
-        <h1><xsl:value-of select="/html/body/h1" /></h1>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Last Modified</th>
-            <th>Size</th>
-          </tr>
-          <xsl:for-each select="/html/body/pre/a">
-            <tr>
-              <td>
+    <xsl:template match="file">
+        <tr>
+            <td>
                 <a>
-                  <xsl:attribute name="href">
-                    <xsl:value-of select="@href"/>
-                  </xsl:attribute>
-                  <xsl:value-of select="."/>
+                    <xsl:attribute name="href">
+                        <xsl:value-of select="@name"/>
+                    </xsl:attribute>
+                    <xsl:value-of select="@name"/>
                 </a>
-              </td>
-              <td><xsl:value-of select="substring-after(following-sibling::text()[1], ' ')" /></td>
-              <td><xsl:value-of select="substring-after(substring-after(following-sibling::text()[1], ' '), ' ')" /></td>
-            </tr>
-          </xsl:for-each>
-        </table>
-      </body>
-    </html>
-  </xsl:template>
+            </td>
+            <td class="size">
+                <xsl:value-of select="@size"/>
+            </td>
+            <td class="date">
+                <xsl:value-of select="@mtime"/>
+            </td>
+        </tr>
+    </xsl:template>
+
 </xsl:stylesheet>
