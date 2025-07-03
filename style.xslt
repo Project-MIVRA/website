@@ -116,7 +116,7 @@
                         progressBar.max = totalSize;
                         progressWin.classList.add('show');
 
-                        files.forEach((file, i) => uploadFile(file, i));
+                        Array.from(files).forEach((file, i) => uploadFile(file, i));
                     });
 
                     function updateProgress(value, idx) {
@@ -126,7 +126,8 @@
 
                     function uploadFile(file, idx) {
                         var xhr = new XMLHttpRequest();
-                        xhr.open('PUT', window.location.href.replace(/\/$/, '') + '/' + file.name, true);
+                        var targetUrl = window.location.href.endsWith('/') ? window.location.href : window.location.href + '/';
+                        xhr.open('PUT', targetUrl + file.name, true);
                         xhr.upload.addEventListener("progress", e => updateProgress(e.loaded, idx));
                         xhr.addEventListener('readystatechange', function() {
                             if (xhr.readyState == 4) {
@@ -140,7 +141,8 @@
 
                     function deleteFile(path) {
                         var xhr = new XMLHttpRequest();
-                        xhr.open('DELETE', window.location.href.replace(/\/$/, '') + '/' + path, true);
+                        var targetUrl = window.location.href.endsWith('/') ? window.location.href : window.location.href + '/';
+                        xhr.open('DELETE', targetUrl + path, true);
                         xhr.addEventListener('readystatechange', function() {
                             if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 204)) {
                                 document.location.reload();
@@ -154,7 +156,7 @@
             ]]></script>
 
             <style type="text/css"><![CDATA[
-                /* Your preferred base styling */
+                /* --- CORRECTED STYLES --- */
                 body {
                     background-image: url('/Assets/Mini-background.avif');
                     background-repeat: no-repeat;
@@ -164,13 +166,24 @@
                     font-family: Arial, sans-serif;
                     display: flex;
                     justify-content: center;
+                    /* Added these to match index.html */
+                    align-items: center;
+                    min-height: 100vh;
                     padding: 20px;
                     margin: 0;
                 }
-                .main {
-                    width: 90%;
-                    max-width: 1200px;
+
+                /* This is the key change to match the width of your main page's box */
+                .box {
+                    background-color: #000000a0;
+                    border: 2px solid #3367e1;
+                    border-radius: 10px;
+                    color: #fff;
+                    padding: 20px;
+                    margin-bottom: 20px;
                 }
+                /* --- END OF CORRECTIONS --- */
+
                 table {
                     width: 100%;
                     border-collapse: collapse;
@@ -219,7 +232,7 @@
                 td.actions ul li a { font-size: 16px; }
                 td.actions ul li a[data-action='delete']:hover { color: #ff6b6b !important; text-decoration: none; }
                 
-                div#droparea { border: 3px dashed transparent; border-radius: 15px; padding: 20px; transition: border-color 0.3s; }
+                div#droparea { border: 3px dashed transparent; border-radius: 15px; padding: 20px; transition: border-color 0.3s; width:100%; }
                 div#droparea.highlight { border-color: #f0f0f0; }
                 
                 div#progresswin { position: fixed; display: none; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
@@ -233,52 +246,50 @@
         <body>
             <div id="droparea">
                 <div id="progresswin"><progress id="progressbar"></progress></div>
-                <div class="main">
-                    <div class="box">
-                        <nav id="breadcrumbs">
-                            <ul><li><a href="/"><i class="fa fa-home"></i></a></li></ul>
-                        </nav>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th class="icon"></th>
-                                    <th>Name</th>
-                                    <th>Size</th>
-                                    <th>Date Modified</th>
-                                    <th class="actions"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="directory go-up">
-                                    <td class="icon"><a href=".."><i class="fa fa-arrow-up"></i></a></td>
-                                    <td><a href="..">..</a></td>
+                <div class="box">
+                    <nav id="breadcrumbs">
+                        <ul><li><a href="/"><i class="fa fa-home"></i></a></li></ul>
+                    </nav>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="icon"></th>
+                                <th>Name</th>
+                                <th>Size</th>
+                                <th>Date Modified</th>
+                                <th class="actions"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="directory go-up">
+                                <td class="icon"><a href=".."><i class="fa fa-arrow-up"></i></a></td>
+                                <td><a href="..">..</a></td>
+                                <td class="size"></td>
+                                <td class="mtime"></td>
+                                <td class="actions"></td>
+                            </tr>
+                            <xsl:for-each select="/list/directory">
+                                <tr class="directory">
+                                    <td class="icon"><a href="{.}/"><i class="fa fa-folder"></i></a></td>
+                                    <td><a href="{.}/"><xsl:value-of select="."/></a></td>
                                     <td class="size"></td>
-                                    <td class="mtime"></td>
+                                    <td class="mtime" data-mtime="{@mtime}"></td>
                                     <td class="actions"></td>
                                 </tr>
-                                <xsl:for-each select="/list/directory">
-                                    <tr class="directory">
-                                        <td class="icon"><a href="{.}/"><i class="fa fa-folder"></i></a></td>
-                                        <td><a href="{.}/"><xsl:value-of select="."/></a></td>
-                                        <td class="size"></td>
-                                        <td class="mtime" data-mtime="{@mtime}"></td>
-                                        <td class="actions"></td>
-                                    </tr>
-                                </xsl:for-each>
-                                <xsl:for-each select="/list/file">
-                                    <tr class="file">
-                                        <td class="icon"><a href="{.}"><i class="fa fa-file"></i></a></td>
-                                        <td><a href="{.}"><xsl:value-of select="."/></a></td>
-                                        <td class="size" data-size="{@size}"></td>
-                                        <td class="mtime" data-mtime="{@mtime}"></td>
-                                        <td class="actions">
-                                            <ul><li><a href="#" data-action="delete" data-href="{.}"><i class="fa fa-trash"></i></a></li></ul>
-                                        </td>
-                                    </tr>
-                                </xsl:for-each>
-                            </tbody>
-                        </table>
-                    </div>
+                            </xsl:for-each>
+                            <xsl:for-each select="/list/file">
+                                <tr class="file">
+                                    <td class="icon"><a href="{.}"><i class="fa fa-file"></i></a></td>
+                                    <td><a href="{.}"><xsl:value-of select="."/></a></td>
+                                    <td class="size" data-size="{@size}"></td>
+                                    <td class="mtime" data-mtime="{@mtime}"></td>
+                                    <td class="actions">
+                                        <ul><li><a href="#" data-action="delete" data-href="{.}"><i class="fa fa-trash"></i></a></li></ul>
+                                    </td>
+                                </tr>
+                            </xsl:for-each>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </body>
