@@ -156,7 +156,6 @@
             ]]></script>
 
             <style type="text/css"><![CDATA[
-                /* --- CORRECTED STYLES --- */
                 body {
                     background-image: url('/Assets/Mini-background.avif');
                     background-repeat: no-repeat;
@@ -166,14 +165,13 @@
                     font-family: Arial, sans-serif;
                     display: flex;
                     justify-content: center;
-                    /* Added these to match index.html */
                     align-items: center;
                     min-height: 100vh;
                     padding: 20px;
                     margin: 0;
                 }
 
-                /* This is the key change to match the width of your main page's box */
+                /* This combines your style with the necessary width constraint */
                 .box {
                     background-color: #000000a0;
                     border: 2px solid #3367e1;
@@ -181,8 +179,10 @@
                     color: #fff;
                     padding: 20px;
                     margin-bottom: 20px;
+                    /* These lines fix the width problem */
+                    max-width: 800px;
+                    width: 100%;
                 }
-                /* --- END OF CORRECTIONS --- */
 
                 table {
                     width: 100%;
@@ -210,7 +210,6 @@
                     text-align: right;
                 }
 
-                /* Styles for new features */
                 nav#breadcrumbs { margin-bottom: 30px; display: flex; justify-content: center; align-items: center; }
                 nav#breadcrumbs ul { list-style: none; display: inline-block; margin: 0; padding: 0; }
                 nav#breadcrumbs ul li { float: left; }
@@ -232,7 +231,7 @@
                 td.actions ul li a { font-size: 16px; }
                 td.actions ul li a[data-action='delete']:hover { color: #ff6b6b !important; text-decoration: none; }
                 
-                div#droparea { border: 3px dashed transparent; border-radius: 15px; padding: 20px; transition: border-color 0.3s; width:100%; }
+                div#droparea { border: 3px dashed transparent; border-radius: 15px; transition: border-color 0.3s; width:100%; display: flex; justify-content: center;}
                 div#droparea.highlight { border-color: #f0f0f0; }
                 
                 div#progresswin { position: fixed; display: none; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
