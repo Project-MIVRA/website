@@ -6,7 +6,7 @@
         <html>
             <head>
                 <meta charset="UTF-8"/>
-                <title>Index of <xsl:value-of select="$path" /></title>
+                <title>Index of <xsl:value-of select="/directory/@path"/></title>
                 <link rel="stylesheet" type="text/css" href="/style.css"/>
                 <style>
                     body {
@@ -54,7 +54,7 @@
             <body>
                 <div class="main">
                     <div class="box">
-                        <h1>Index of <xsl:value-of select="$path" /></h1>
+                        <h1>Index</h1>
                         <table>
                             <tr>
                                 <th>Name</th>
