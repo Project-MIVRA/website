@@ -5,41 +5,86 @@
       <head>
         <title>Index of <xsl:value-of select="/html/body/h1" /></title>
         <style>
-          body {
-            font-family: sans-serif;
-            background-color: #1a1a1a;
-            color: #f2f2f2;
-            margin: 0;
-            padding: 2em;
-          }
-          h1 {
-            text-align: center;
-            color: #f2f2f2;
-          }
-          table {
-            width: 80%;
-            margin: 1em auto;
-            border-collapse: collapse;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-          }
-          th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-          }
-          th {
-            background-color: #333;
-          }
-          tr:hover {
-            background-color: #444;
-          }
-          a {
-            color: #61dafb;
-            text-decoration: none;
-          }
-          a:hover {
-            text-decoration: underline;
-          }
+            body {
+                background-image: url('Assets/Mini-background.avif');
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-position: center;
+                background-size: cover;
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                padding: 20px;
+                margin: 0;
+            }
+            h1 {
+                color: white;
+                text-align: center;
+            }
+
+            .box {
+                background-color: #000000a0;
+                border: 2px solid #3367e1;
+                border-radius: 10px;
+                color: #fff;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .main {
+                width: 90%;
+                max-width: 1200px;
+            }
+
+            .wishlist-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+                list-style: none;
+                padding: 0;
+            }
+
+            .wishlist-item {
+                background-color: #000000a0;
+                border: 2px solid #3367e1;
+                border-radius: 10px;
+                overflow: hidden;
+                transition: transform 0.2s ease-in-out;
+                color: #fff;
+            }
+
+            .wishlist-item:hover {
+                transform: translateY(-5px);
+            }
+
+            .wishlist-item a {
+                text-decoration: none;
+                color: inherit;
+                display: block;
+            }
+
+            .wishlist-item img {
+                width: 100%;
+                height: auto;
+                display: block;
+                aspect-ratio: 1 / 1;
+                object-fit: cover;
+            }
+
+            .item-info {
+                padding: 15px;
+                text-align: center;
+            }
+
+            .item-title {
+                font-weight: bold;
+                font-size: 1.1em;
+                color: royalblue;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
         </style>
       </head>
       <body>
