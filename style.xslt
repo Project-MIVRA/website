@@ -18,9 +18,8 @@
                     }
                     /* Ensure the content box is not centered in the viewport like the main page */
                     .main {
-                        width: 80%;
-                        max-width: 900px;
-                        margin-top: 50px;
+                        width: 90%;
+                        max-width: 1200px;
                     }
                     table {
                         width: 100%;
