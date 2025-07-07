@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (song && song.item) {
                 // Use optional chaining and provide default values to prevent errors
-                const artists = song.item.artists?.map(artist => artist.name).join(', ') || 'Unknown Artist';
+                const artists = song.item.artists?.map(artist => artist?.name).filter(Boolean).join(', ') || 'Unknown Artist';
                 const progress = formatTime(song.progress_ms);
                 const duration = formatTime(song.item.duration_ms);
                 const albumImage = song.item.album?.images?.[0]?.url || 'https://placehold.co/640x640/191414/ffffff?text=No+Art';
