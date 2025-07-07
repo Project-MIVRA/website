@@ -93,14 +93,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 spotifyWidget.innerHTML = `
                     <h2>Now Playing</h2>
-                    <a href="${songUrl}" target="_blank" rel="noopener noreferrer">
-                        <img src="${albumImage}" alt="${albumName}">
-                    </a>
-                    <div class="spotify-status">
-                        ${statusIcon}
-                        <h3 title="${songName}">${songName}</h3>
+                    <div class="spotify-now-playing-container">
+                        <div class="spotify-album-art">
+                            <a href="${songUrl}" target="_blank" rel="noopener noreferrer">
+                                <img src="${albumImage}" alt="${albumName}">
+                            </a>
+                        </div>
+                        <div class="spotify-song-info">
+                            <div class="spotify-status">
+                                ${statusIcon}
+                                <h3 title="${songName}">${songName}</h3>
+                            </div>
+                            <p class="spotify-artist" title="${artists}">${artists}</p>
+                        </div>
                     </div>
-                    <p class="spotify-artist" title="${artists}">${artists}</p>
                     <div class="spotify-progress-bar-container">
                         <div class="spotify-progress-bar" style="width: ${progressPercent}%;"></div>
                     </div>

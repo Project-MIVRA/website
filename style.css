@@ -98,12 +98,21 @@ h1 {
     color: white;
     text-align: center;
 }
-#spotify-widget img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
+.spotify-now-playing-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     margin-bottom: 1rem;
+}
+.spotify-album-art img {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.spotify-song-info {
+    flex: 1;
+    min-width: 0; /* Prevents text overflow issues */
 }
 #spotify-widget .spotify-status {
     display: flex;
@@ -123,6 +132,7 @@ h1 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
 }
 #spotify-widget .spotify-artist {
     font-size: 0.9em;
@@ -131,6 +141,7 @@ h1 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-top: 0;
 }
 #spotify-widget .spotify-progress-bar-container {
     width: 100%;
