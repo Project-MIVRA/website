@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const artists = song.item.artists.map(artist => artist.name).join(', ');
                 const progress = formatTime(song.progress_ms);
                 const duration = formatTime(song.item.duration_ms);
+                
+                // Safely check for device name
+                const deviceName = song.device ? song.device.name : 'an unknown device';
 
                 spotifyWidget.innerHTML = `
                     <h2 class="text-xl font-semibold mb-4 text-white">Now Playing on Spotify</h2>
@@ -64,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                           <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
                           <path d="M8 4.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zm0 2.5a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM8 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0 2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
                         </svg>
-                        Listening on ${song.device.name}
+                        Listening on ${deviceName}
                     </p>
                 `;
             } else {
