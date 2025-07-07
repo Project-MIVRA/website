@@ -44,25 +44,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const song = await response.json();
 
+            // Log the full API response to the browser console for debugging
+            console.log('Spotify API Response:', song);
+
             if (song && song.item) {
                 const artists = song.item.artists?.map(artist => artist?.name).filter(Boolean).join(', ') || 'Unknown Artist';
-                const progress = formatTime(song.progress_ms);
-                const duration = formatTime(song.item.duration_ms);
+                const progressMs = song.progress_ms;
+                const durationMs = song.item.duration_ms;
+                const progressPercent = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
                 const albumImage = song.item.album?.images?.[0]?.url || 'https://placehold.co/640x640/191414/ffffff?text=No+Art';
                 const albumName = song.item.album?.name || 'Unknown Album';
                 const songName = song.item.name || 'Unknown Song';
                 const songUrl = song.item.external_urls?.spotify || '#';
                 const deviceName = song.device?.name || 'an unknown device';
+                const isPlaying = song.is_playing;
+
+                const statusIcon = isPlaying 
+                    ? `<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5.7 3A.7.7 0 005 3.7v16.6a.7.7 0 00.7.7h2.6a.7.7 0 00.7-.7V3.7a.7.7 0 00-.7-.7H5.7zm10 0a.7.7 0 00-.7.7v16.6a.7.7 0 00.7.7h2.6a.7.7 0 00.7-.7V3.7a.7.7 0 00-.7-.7h-2.6z"></path></svg>` // Pause icon
+                    : `<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.05 3.606l13.49 7.788a.7.7 0 010 1.212L7.05 20.394A.7.7 0 016 19.788V4.212a.7.7 0 011.05-.606z"></path></svg>`; // Play icon
 
                 spotifyWidget.innerHTML = `
                     <h2>Now Playing on Spotify</h2>
                     <a href="${songUrl}" target="_blank" rel="noopener noreferrer">
                         <img src="${albumImage}" alt="${albumName}">
                     </a>
-                    <h3 title="${songName}">${songName}</h3>
+                    <div class="spotify-status">
+                        ${statusIcon}
+                        <h3 title="${songName}">${songName}</h3>
+                    </div>
                     <p class="spotify-artist" title="${artists}">${artists}</p>
-                    <div class="spotify-progress">
-                        <span>${progress} / ${duration}</span>
+                    <div class="spotify-progress-bar-container">
+                        <div class="spotify-progress-bar" style="width: ${progressPercent}%;"></div>
+                    </div>
+                    <div class="spotify-progress-time">
+                        <span>${formatTime(progressMs)} / ${formatTime(durationMs)}</span>
                     </div>
                     <p class="spotify-device">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
