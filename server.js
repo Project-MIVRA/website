@@ -9,15 +9,12 @@ const crypto = require('crypto');
 const fetch = require('node-fetch'); // Use node-fetch for server-side API calls
 
 // --- Configuration ---
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const DATA_FILE_PATH = path.join(__dirname, 'wishlist', 'wishlist-data.json');
-
-// Environment and Base URL from .env
-const { NODE_ENV, BASE_URL } = process.env;
 
 // Spotify Credentials from .env
 const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = process.env;
-const SPOTIFY_REDIRECT_URI = `${BASE_URL}/auth/callback`;
+const SPOTIFY_REDIRECT_URI = `http://localhost:${PORT}/auth/callback`;
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
 
@@ -239,7 +236,10 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // --- Start Server ---
 app.listen(PORT, () => {
-    console.log(`Server is running in ${NODE_ENV || 'development'} mode on ${BASE_URL}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
     console.log('To get your Spotify Refresh Token, visit:');
-    console.log(`${BASE_URL}/auth/login`);
+    console.log(`http://localhost:${PORT}/auth/login`);
+    readWishlistData().then(writeWishlistData).catch(err => {
+        console.error("Error during initial check/creation of wishlist-data.json:", err);
+    });
 });
