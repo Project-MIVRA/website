@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (response.status === 204) {
                  spotifyWidget.innerHTML = `
-                    <h2 class="text-xl font-semibold mb-2 text-white">Now Playing</h2>
-                    <p class="text-gray-300">Nothing is currently playing on Spotify.</p>
+                    <h2>Now Playing</h2>
+                    <p>Nothing is currently playing on Spotify.</p>
                 `;
                 return;
             }
@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const song = await response.json();
 
             if (song && song.item) {
-                // Use optional chaining and provide default values to prevent errors
                 const artists = song.item.artists?.map(artist => artist?.name).filter(Boolean).join(', ') || 'Unknown Artist';
                 const progress = formatTime(song.progress_ms);
                 const duration = formatTime(song.item.duration_ms);
@@ -56,17 +55,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const deviceName = song.device?.name || 'an unknown device';
 
                 spotifyWidget.innerHTML = `
-                    <h2 class="text-xl font-semibold mb-4 text-white">Now Playing on Spotify</h2>
+                    <h2>Now Playing on Spotify</h2>
                     <a href="${songUrl}" target="_blank" rel="noopener noreferrer">
-                        <img src="${albumImage}" alt="${albumName}" class="w-full rounded-lg mb-4 shadow-lg">
+                        <img src="${albumImage}" alt="${albumName}">
                     </a>
-                    <h3 class="font-bold text-lg truncate" title="${songName}">${songName}</h3>
-                    <p class="text-gray-300 text-sm truncate" title="${artists}">${artists}</p>
-                    <div class="mt-2 text-xs text-gray-400">
+                    <h3 title="${songName}">${songName}</h3>
+                    <p class="spotify-artist" title="${artists}">${artists}</p>
+                    <div class="spotify-progress">
                         <span>${progress} / ${duration}</span>
                     </div>
-                    <p class="text-sm text-gray-400 mt-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-speaker inline-block mr-1" viewBox="0 0 16 16">
+                    <p class="spotify-device">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
                           <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
                           <path d="M8 4.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zm0 2.5a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM8 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0 2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
                         </svg>
@@ -75,15 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             } else {
                  spotifyWidget.innerHTML = `
-                    <h2 class="text-xl font-semibold mb-2 text-white">Now Playing</h2>
-                    <p class="text-gray-300">Nothing is currently playing on Spotify.</p>
+                    <h2>Now Playing</h2>
+                    <p>Nothing is currently playing on Spotify.</p>
                 `;
             }
         } catch (error) {
             console.error('Error rendering song:', error);
             spotifyWidget.innerHTML = `
-                <h2 class="text-xl font-semibold mb-2 text-white">Now Playing</h2>
-                <p class="text-red-400">Could not load Spotify data.</p>
+                <h2>Now Playing</h2>
+                <p>Could not load Spotify data.</p>
             `;
         }
     };
