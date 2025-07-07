@@ -22,8 +22,10 @@ const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
 const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`;
 
-// Steam Endpoint
+// Steam Endpoints
 const STEAM_RECENTLY_PLAYED_ENDPOINT = `http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/`;
+const STEAM_PLAYER_SUMMARY_ENDPOINT = `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
+
 
 const app = express();
 
@@ -109,8 +111,23 @@ app.get('/api/spotify/devices', async (req, res) => {
     }
 });
 
-// --- Steam API Endpoint ---
-app.get('/api/steam/currently-playing', async (req, res) => {
+// --- Steam API Endpoints ---
+app.get('/api/steam/player-summary', async (req, res) => {
+    if (!STEAM_API_KEY || !STEAM_USER_ID) {
+        return res.status(500).json({ message: 'Steam API Key or User ID is not configured on the server.' });
+    }
+    try {
+        const url = `${STEAM_PLAYER_SUMMARY_ENDPOINT}?key=${STEAM_API_KEY}&steamids=${STEAM_USER_ID}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Error fetching from Steam Player Summary API:', error);
+        res.status(500).json({ message: 'Internal server error while fetching from Steam.' });
+    }
+});
+
+app.get('/api/steam/recently-played', async (req, res) => {
     if (!STEAM_API_KEY || !STEAM_USER_ID) {
         return res.status(500).json({ message: 'Steam API Key or User ID is not configured on the server.' });
     }
@@ -120,7 +137,7 @@ app.get('/api/steam/currently-playing', async (req, res) => {
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        console.error('Error fetching from Steam API:', error);
+        console.error('Error fetching from Steam Recently Played API:', error);
         res.status(500).json({ message: 'Internal server error while fetching from Steam.' });
     }
 });

@@ -31,8 +31,6 @@ h1 {
     min-width: 250px;
 }
 
-/* --- New Widget Styles --- */
-
 /* Clock Widget */
 #clock-widget {
     text-align: center;
@@ -76,6 +74,12 @@ h1 {
     color: #ccc;
     margin: 0;
 }
+.steam-live-indicator {
+    color: #1DB954; /* Spotify Green, for consistency */
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-left: 5px;
+}
 
 /* Ko-fi Widget */
 #kofi-widget iframe {
@@ -86,7 +90,7 @@ h1 {
 }
 
 
-/* --- Existing Spotify Styles --- */
+/* Spotify Widget Styles */
 #spotify-widget h2 {
     font-size: 1.5em;
     font-weight: 600;
