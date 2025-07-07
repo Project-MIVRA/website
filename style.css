@@ -1,4 +1,3 @@
-
 h1 {
     color: white;
     text-align: center;
@@ -13,11 +12,38 @@ h1 {
     margin-bottom: 20px;
 }
 
-.main {
-    width: 90%;
-    max-width: 1200px;
+/* New layout styles */
+.body-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px; /* Or your preferred max width */
+    gap: 20px;
 }
 
+.main {
+    flex-grow: 1;
+    width: 70%; /* Main content takes up more space */
+}
+
+.sidebar {
+    width: 30%; /* Sidebar takes up less space */
+    flex-shrink: 0; /* Prevents sidebar from shrinking */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .body-container {
+        flex-direction: column;
+    }
+
+    .main, .sidebar {
+        width: 100%;
+    }
+}
+
+
+/* Wishlist specific styles from original file */
 .wishlist-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));

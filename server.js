@@ -1,132 +1,138 @@
 // server.js
 
 // --- Dependencies ---
+require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
-const fs = require('fs').promises; // Using promises for cleaner async file operations
+const fs = require('fs').promises;
 const path = require('path');
-const crypto = require('crypto'); // For generating unique IDs
+const crypto = require('crypto');
+const fetch = require('node-fetch'); // Use node-fetch for server-side API calls
 
 // --- Configuration ---
-const PORT = process.env.PORT || 3000; // Port to run the server on
-const DATA_FILE_PATH = path.join(__dirname, 'wishlist', 'wishlist-data.json'); // Path to your data file
-// Ensure the 'wishlist' directory exists at the same level as this server.js file.
-// The wishlist-data.json will be inside the 'wishlist' directory.
+const PORT = process.env.PORT || 3000;
+const DATA_FILE_PATH = path.join(__dirname, 'wishlist', 'wishlist-data.json');
+
+// Environment and Base URL from .env
+const { NODE_ENV, BASE_URL } = process.env;
+
+// Spotify Credentials from .env
+const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = process.env;
+const SPOTIFY_REDIRECT_URI = `${BASE_URL}/auth/callback`;
+const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
+const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
+
 
 const app = express();
 
 // --- Middleware ---
-app.use(express.json()); // Middleware to parse JSON request bodies
-
-// Middleware to serve static files (HTML, CSS, client-side JS)
-// This assumes your server.js is in the root of your project,
-// and your website files (including the 'wishlist' folder) are also in the root.
-app.use(express.static(path.join(__dirname))); // Serves files from the root directory
-app.use('/wishlist', express.static(path.join(__dirname, 'wishlist'))); // Specifically serve /wishlist path
+app.use(express.json());
+app.use(express.static(path.join(__dirname)));
+app.use('/wishlist', express.static(path.join(__dirname, 'wishlist')));
 
 // --- Helper Functions ---
 
 /**
  * Reads wishlist items from the JSON data file.
- * @returns {Promise<Array>} A promise that resolves to an array of wishlist items.
  */
 async function readWishlistData() {
     try {
-        // Check if the file exists
         await fs.access(DATA_FILE_PATH);
         const data = await fs.readFile(DATA_FILE_PATH, 'utf8');
-        // If the file is empty or contains only whitespace, treat it as an empty list
-        if (data.trim() === '') {
-            console.log('wishlist-data.json is empty. Starting with an empty list.');
-            return [];
-        }
-        return JSON.parse(data);
+        return data.trim() === '' ? [] : JSON.parse(data);
     } catch (error) {
-        // If file doesn't exist, return an empty array
-        if (error.code === 'ENOENT') {
-            console.log('wishlist-data.json not found. Starting with an empty list.');
-            return []; 
-        }
-        // For other errors (like malformed JSON that isn't just an empty string), log and return empty.
+        if (error.code === 'ENOENT') return [];
         console.error('Error reading wishlist data file:', error);
-        return []; 
+        return [];
     }
 }
 
 /**
  * Writes wishlist items to the JSON data file.
- * @param {Array} items - The array of wishlist items to write.
- * @returns {Promise<void>}
  */
 async function writeWishlistData(items) {
     try {
-        // Ensure the directory exists
         await fs.mkdir(path.dirname(DATA_FILE_PATH), { recursive: true });
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(items, null, 2), 'utf8');
     } catch (error) {
         console.error('Error writing wishlist data file:', error);
-        throw new Error('Failed to save wishlist data.'); // Propagate error
+        throw new Error('Failed to save wishlist data.');
     }
 }
 
 /**
  * Generates a unique ID.
- * @returns {string} A unique ID.
  */
 function generateUniqueId() {
     return crypto.randomBytes(16).toString('hex');
 }
 
+// --- Spotify API Helper Functions ---
+
+/**
+ * Gets a fresh access token from Spotify using the refresh token.
+ */
+const getAccessToken = async () => {
+    const response = await fetch(TOKEN_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Basic ' + Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64'),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: SPOTIFY_REFRESH_TOKEN
+        })
+    });
+    const data = await response.json();
+    return data.access_token;
+};
+
 // --- API Endpoints ---
 
-// GET /api/wishlist - Get all wishlist items
+// GET /api/wishlist
 app.get('/api/wishlist', async (req, res) => {
     try {
         const items = await readWishlistData();
-        // Sort items by addedAt (descending) before sending, if addedAt exists
-        items.sort((a, b) => {
-            const timeA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
-            const timeB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
-            return timeB - timeA;
-        });
+        items.sort((a, b) => (new Date(b.addedAt) || 0) - (new Date(a.addedAt) || 0));
         res.json(items);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching wishlist items.', error: error.message });
     }
 });
 
-// POST /api/wishlist - Add a new wishlist item
+// POST /api/wishlist
 app.post('/api/wishlist', async (req, res) => {
     try {
         const items = await readWishlistData();
         const newItem = {
-            id: generateUniqueId(), // Generate a unique ID on the server
+            id: generateUniqueId(),
             name: req.body.name,
             description: req.body.description || '',
             imageUrl: req.body.imageUrl || '',
             price: req.body.price || '',
             link: req.body.link,
-            addedAt: new Date().toISOString() // Add a timestamp on the server
+            addedAt: new Date().toISOString()
         };
 
         if (!newItem.name || !newItem.link) {
             return res.status(400).json({ message: 'Item name and link are required.' });
         }
 
-        items.unshift(newItem); // Add to the beginning of the array (newest first)
+        items.unshift(newItem);
         await writeWishlistData(items);
-        res.status(201).json(newItem); // Respond with the created item
+        res.status(201).json(newItem);
     } catch (error) {
         res.status(500).json({ message: 'Error adding wishlist item.', error: error.message });
     }
 });
 
-// DELETE /api/wishlist/:id - Delete a wishlist item by ID
+// DELETE /api/wishlist/:id
 app.delete('/api/wishlist/:id', async (req, res) => {
     try {
-        const itemIdToDelete = req.params.id;
+        const { id } = req.params;
         let items = await readWishlistData();
         const initialLength = items.length;
-        items = items.filter(item => item.id !== itemIdToDelete);
+        items = items.filter(item => item.id !== id);
 
         if (items.length === initialLength) {
             return res.status(404).json({ message: 'Item not found.' });
@@ -139,51 +145,101 @@ app.delete('/api/wishlist/:id', async (req, res) => {
     }
 });
 
+// --- Spotify API Endpoints ---
+
+// GET /api/spotify/now-playing - Secure endpoint for the client to fetch data
+app.get('/api/spotify/now-playing', async (req, res) => {
+    try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            return res.status(503).json({ message: 'Could not retrieve access token from Spotify.' });
+        }
+
+        const response = await fetch(NOW_PLAYING_ENDPOINT, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        if (response.status === 204) {
+            // 204 No Content - Nothing is playing
+            return res.status(204).send();
+        }
+        
+        if (response.status > 400) {
+            const errorText = await response.text();
+             return res.status(response.status).json({ message: 'Error from Spotify API.', details: errorText });
+        }
+
+        const song = await response.json();
+        res.json(song);
+
+    } catch (error) {
+        console.error('Error in /api/spotify/now-playing:', error);
+        res.status(500).json({ message: 'Internal server error while fetching from Spotify.', error: error.message });
+    }
+});
+
+// --- Spotify Authentication Flow (for getting the initial refresh token) ---
+
+// GET /auth/login - Step 1: Redirect user to Spotify to authorize
+app.get('/auth/login', (req, res) => {
+    const scope = 'user-read-currently-playing';
+    res.redirect('https://accounts.spotify.com/authorize?' +
+        new URLSearchParams({
+            response_type: 'code',
+            client_id: SPOTIFY_CLIENT_ID,
+            scope: scope,
+            redirect_uri: SPOTIFY_REDIRECT_URI
+        }).toString());
+});
+
+// GET /auth/callback - Step 2: Exchange authorization code for tokens
+app.get('/auth/callback', async (req, res) => {
+    const code = req.query.code || null;
+
+    try {
+        const response = await fetch('https://accounts.spotify.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Basic ' + (Buffer.from(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).toString('base64')),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                code: code,
+                redirect_uri: SPOTIFY_REDIRECT_URI,
+                grant_type: 'authorization_code'
+            })
+        });
+
+        const data = await response.json();
+        const { access_token, refresh_token } = data;
+
+        res.send(`
+            <h1>Authentication Successful!</h1>
+            <p><strong>Your Refresh Token is:</strong></p>
+            <pre>${refresh_token}</pre>
+            <p>Copy this token and add it to your <code>.env</code> file as <code>SPOTIFY_REFRESH_TOKEN</code>.</p>
+            <hr>
+            <p><strong>Your initial Access Token is:</strong></p>
+            <pre>${access_token}</pre>
+        `);
+    } catch (error) {
+        console.error('Error during auth callback:', error);
+        res.status(500).send("Error getting refresh token.");
+    }
+});
+
 
 // --- Serve HTML Pages ---
-// Serve the public wishlist page
-app.get('/wishlist/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'wishlist', 'index.html'));
-});
-
-// Serve the admin page
-app.get('/wishlist/admin/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'wishlist', 'admin', 'index.html'));
-});
-
-// Fallback for other routes under /wishlist (e.g. /wishlist/wishlist.js)
-// will be handled by the static middleware if the file exists.
-
-// Basic root route
-app.get('/', (req, res) => {
-    // You might want to redirect to /wishlist/ or serve your main website's index.html
-    res.send('Welcome to the Wishlist App Backend! Visit /wishlist to see the wishlist.');
-});
+app.get('/wishlist/', (req, res) => res.sendFile(path.join(__dirname, 'wishlist', 'index.html')));
+app.get('/wishlist/admin/', (req, res) => res.sendFile(path.join(__dirname, 'wishlist', 'admin', 'index.html')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 
 // --- Start Server ---
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-    // Check if wishlist-data.json exists and is valid, create/initialize if not
-    readWishlistData().then(async items => { // Made this callback async
-        // If readWishlistData returned [] because file was non-existent, empty or malformed,
-        // we ensure it's initialized with a valid empty JSON array.
-        const fileExists = await fs.access(DATA_FILE_PATH).then(() => true).catch(() => false);
-        let needsInitialization = !fileExists;
-        if (fileExists) {
-            const currentData = await fs.readFile(DATA_FILE_PATH, 'utf8');
-            if (currentData.trim() === '') { // Also initialize if it exists but is empty
-                needsInitialization = true;
-            }
-        }
-
-        if (needsInitialization) {
-            console.log('Initializing wishlist-data.json with an empty array.');
-            return writeWishlistData([]);
-        }
-    }).catch(err => {
-        // This catch is for errors during the fs.access or fs.readFile in the .then block,
-        // or if writeWishlistData itself throws an unhandled error.
-        console.error("Error during initial check/creation of wishlist-data.json:", err);
-    });
+    console.log(`Server is running in ${NODE_ENV || 'development'} mode on ${BASE_URL}`);
+    console.log('To get your Spotify Refresh Token, visit:');
+    console.log(`${BASE_URL}/auth/login`);
 });
