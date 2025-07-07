@@ -164,3 +164,33 @@ h1 {
     margin-right: 0.5rem;
     fill: currentColor;
 }
+
+/* Chat Widget */
+#chat-widget {
+    text-align: center;
+}
+
+#chat-container {
+  height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+  background-color: #333;
+}
+
+#chat-input {
+  width: calc(100% - 70px);
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#chat-send {
+  width: 60px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}

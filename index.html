@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-122P6KETQN"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -104,10 +103,17 @@
               <h2>Recently on Steam</h2>
               <p>Loading...</p>
           </div>
+          <div class="box" id="chat-widget">
+            <h2>Chat</h2>
+            <div id="chat-container"></div>
+            <input id="chat-input" type="text" placeholder="Type a message..." />
+            <button id="chat-send">Send</button>
+          </div>
         </div>
     </div>
     <script src="spotify.js"></script>
     <script src="clock.js"></script>
     <script src="steam.js"></script>
+    <script src="chat.js"></script>
   </body>
 </html>
