@@ -6,7 +6,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
-const fetch = 'node-fetch'; // Use node-fetch for server-side API calls
+const fetch = require('node-fetch'); // Use node-fetch for server-side API calls
 
 // --- Configuration ---
 const PORT = process.env.PORT || 3000;
