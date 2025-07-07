@@ -20,6 +20,7 @@ const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = proc
 const SPOTIFY_REDIRECT_URI = `${BASE_URL}/auth/callback`;
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
+const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`; // New endpoint for devices
 
 
 const app = express();
@@ -147,7 +148,7 @@ app.delete('/api/wishlist/:id', async (req, res) => {
 
 // --- Spotify API Endpoints ---
 
-// GET /api/spotify/now-playing - Secure endpoint for the client to fetch data
+// GET /api/spotify/now-playing - Secure endpoint for the client to fetch song data
 app.get('/api/spotify/now-playing', async (req, res) => {
     try {
         const accessToken = await getAccessToken();
@@ -162,11 +163,10 @@ app.get('/api/spotify/now-playing', async (req, res) => {
         });
 
         if (response.status === 204) {
-            // 204 No Content - Nothing is playing
             return res.status(204).send();
         }
         
-        if (response.status > 400) {
+        if (response.status >= 400) {
             const errorText = await response.text();
              return res.status(response.status).json({ message: 'Error from Spotify API.', details: errorText });
         }
@@ -180,11 +180,40 @@ app.get('/api/spotify/now-playing', async (req, res) => {
     }
 });
 
-// --- Spotify Authentication Flow (for getting the initial refresh token) ---
+// GET /api/spotify/devices - New endpoint to get available devices
+app.get('/api/spotify/devices', async (req, res) => {
+    try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            return res.status(503).json({ message: 'Could not retrieve access token from Spotify.' });
+        }
 
-// GET /auth/login - Step 1: Redirect user to Spotify to authorize
+        const response = await fetch(DEVICES_ENDPOINT, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        if (response.status >= 400) {
+            const errorText = await response.text();
+            return res.status(response.status).json({ message: 'Error from Spotify API.', details: errorText });
+        }
+        
+        const data = await response.json();
+        res.json(data);
+
+    } catch (error) {
+        console.error('Error in /api/spotify/devices:', error);
+        res.status(500).json({ message: 'Internal server error while fetching devices from Spotify.', error: error.message });
+    }
+});
+
+
+// --- Spotify Authentication Flow ---
+
+// GET /auth/login
 app.get('/auth/login', (req, res) => {
-    const scope = 'user-read-currently-playing';
+    const scope = 'user-read-playback-state';
     res.redirect('https://accounts.spotify.com/authorize?' +
         new URLSearchParams({
             response_type: 'code',
@@ -194,7 +223,7 @@ app.get('/auth/login', (req, res) => {
         }).toString());
 });
 
-// GET /auth/callback - Step 2: Exchange authorization code for tokens
+// GET /auth/callback
 app.get('/auth/callback', async (req, res) => {
     const code = req.query.code || null;
 
