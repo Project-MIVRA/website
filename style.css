@@ -81,6 +81,14 @@ h1 {
     margin-left: 5px;
 }
 
+/* Ko-fi Widget */
+#kofi-widget iframe {
+    width: 100%;
+    border-radius: 8px;
+    border: none;
+    height: 400px; /* Adjust as needed */
+}
+
 
 /* Spotify Widget Styles */
 #spotify-widget h2 {

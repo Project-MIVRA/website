@@ -14,12 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const summaryData = await summaryResponse.json();
                 const player = summaryData.response?.players?.[0];
 
+                // The 'gameextrainfo' field is present only when a user is in-game.
                 if (player && player.gameextrainfo) {
-                    // User is currently playing a game
                     const gameName = player.gameextrainfo;
-                    const gameId = player.gameid;
-                    const gameIconUrl = `https://media.steampowered.com/steamcommunity/public/images/apps/${gameId}/3a6e6a643af99a7565558c4233cFC8d914757545.jpg`; // Placeholder, real icon not in this endpoint
-
+                    
                     steamWidget.innerHTML = `
                         <h2>Now on Steam</h2>
                         <div class="steam-game">
@@ -29,11 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     `;
-                    return; // Exit the function since we found a live game
+                    return; // Exit because we found a live game
                 }
             }
 
-            // If not currently playing, fall back to recently played games
+            // If not currently playing, fall back to the most recently played game.
+            // Note: The Steam API doesn't guarantee this list is in chronological order,
+            // but the first item is generally the most relevant recent game.
             const recentResponse = await fetch(recentlyPlayedEndpoint);
             if (recentResponse.ok) {
                 const recentData = await recentResponse.json();
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const hoursPlayed = (mostRecentGame.playtime_forever / 60).toFixed(1);
 
                     steamWidget.innerHTML = `
-                        <h2>Recently on Steam</h2>
+                        <h2>Recent Steam Activity</h2>
                         <div class="steam-game">
                             <img src="${gameIconUrl}" alt="Icon for ${gameName}" onerror="this.style.display='none'">
                             <div class="steam-game-info">
