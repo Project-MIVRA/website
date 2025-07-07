@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {string} The formatted time string.
      */
     const formatTime = (progressMs) => {
+        if (typeof progressMs !== 'number') return '0:00';
         const totalSeconds = Math.floor(progressMs / 1000);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
@@ -28,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(nowPlayingEndpoint);
             
-            // If Spotify is not active or nothing is playing, the server might return 204 or an error
             if (response.status === 204) {
                  spotifyWidget.innerHTML = `
                     <h2 class="text-xl font-semibold mb-2 text-white">Now Playing</h2>
@@ -45,19 +45,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const song = await response.json();
 
             if (song && song.item) {
-                const artists = song.item.artists.map(artist => artist.name).join(', ');
+                // Use optional chaining and provide default values to prevent errors
+                const artists = song.item.artists?.map(artist => artist.name).join(', ') || 'Unknown Artist';
                 const progress = formatTime(song.progress_ms);
                 const duration = formatTime(song.item.duration_ms);
-                
-                // Safely check for device name
-                const deviceName = song.device ? song.device.name : 'an unknown device';
+                const albumImage = song.item.album?.images?.[0]?.url || 'https://placehold.co/640x640/191414/ffffff?text=No+Art';
+                const albumName = song.item.album?.name || 'Unknown Album';
+                const songName = song.item.name || 'Unknown Song';
+                const songUrl = song.item.external_urls?.spotify || '#';
+                const deviceName = song.device?.name || 'an unknown device';
 
                 spotifyWidget.innerHTML = `
                     <h2 class="text-xl font-semibold mb-4 text-white">Now Playing on Spotify</h2>
-                    <a href="${song.item.external_urls.spotify}" target="_blank" rel="noopener noreferrer">
-                        <img src="${song.item.album.images[0].url}" alt="${song.item.album.name}" class="w-full rounded-lg mb-4 shadow-lg">
+                    <a href="${songUrl}" target="_blank" rel="noopener noreferrer">
+                        <img src="${albumImage}" alt="${albumName}" class="w-full rounded-lg mb-4 shadow-lg">
                     </a>
-                    <h3 class="font-bold text-lg truncate" title="${song.item.name}">${song.item.name}</h3>
+                    <h3 class="font-bold text-lg truncate" title="${songName}">${songName}</h3>
                     <p class="text-gray-300 text-sm truncate" title="${artists}">${artists}</p>
                     <div class="mt-2 text-xs text-gray-400">
                         <span>${progress} / ${duration}</span>
