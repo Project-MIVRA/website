@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const fetch = require('node-fetch'); // Use node-fetch for server-side API calls
 
 // --- Configuration ---
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const DATA_FILE_PATH = path.join(__dirname, 'wishlist', 'wishlist-data.json');
 
 // Environment and Base URL from .env
