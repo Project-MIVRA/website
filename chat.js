@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.onopen = () => {
       console.log('WebSocket connection established');
-      appendMessage("🟢 Connected to chat server.", true);
+      appendMessage("🟢 Connected to Khauni's Chatroom.", true);
 
       const storedHash = getCookie('chatHash');
       const storedName = getCookie('chatName');

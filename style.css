@@ -172,6 +172,8 @@ h1 {
 
 #chat-container {
   height: 200px;
+  max-height: 200px; /* Prevents expansion */
+  min-height: 200px; /* Prevents shrinking */
   overflow-y: auto;
   border: 1px solid #ccc;
   padding: 10px;
