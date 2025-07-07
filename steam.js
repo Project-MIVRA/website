@@ -8,8 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!steamWidget) return;
 
         try {
-            // First, check if the user is currently playing a game
-            const summaryResponse = await fetch(playerSummaryEndpoint);
+            // Fetch both summary and recent games data in parallel to be more efficient
+            const [summaryResponse, recentResponse] = await Promise.all([
+                fetch(playerSummaryEndpoint),
+                fetch(recentlyPlayedEndpoint)
+            ]);
+
+            // Check player summary for a live game
             if (summaryResponse.ok) {
                 const summaryData = await summaryResponse.json();
                 const player = summaryData.response?.players?.[0];
@@ -17,24 +22,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 // The 'gameextrainfo' field is present only when a user is in-game.
                 if (player && player.gameextrainfo) {
                     const gameName = player.gameextrainfo;
-                    
+                    const gameId = player.gameid;
+                    let gameIconUrl = 'https://placehold.co/48x48/1b2838/ffffff?text=??'; // Default placeholder
+
+                    // If we found a live game, we need to find its icon hash from the recently played list
+                    if (recentResponse.ok) {
+                        const recentData = await recentResponse.json();
+                        const gameInRecentList = recentData.response?.games?.find(g => g.appid == gameId);
+                        if (gameInRecentList) {
+                            gameIconUrl = `https://media.steampowered.com/steamcommunity/public/images/apps/${gameId}/${gameInRecentList.img_icon_url}.jpg`;
+                        }
+                    }
+
                     steamWidget.innerHTML = `
                         <h2>Now on Steam</h2>
                         <div class="steam-game">
+                            <img src="${gameIconUrl}" alt="Icon for ${gameName}" onerror="this.style.display='none'">
                             <div class="steam-game-info">
                                 <h3>${gameName} <span class="steam-live-indicator">LIVE</span></h3>
                                 <p>Currently playing</p>
                             </div>
                         </div>
                     `;
-                    return; // Exit because we found a live game
+                    return; // Exit because we've displayed the live game
                 }
             }
 
-            // If not currently playing, fall back to the most recently played game.
-            // Note: The Steam API doesn't guarantee this list is in chronological order,
-            // but the first item is generally the most relevant recent game.
-            const recentResponse = await fetch(recentlyPlayedEndpoint);
+            // If no live game was found, fall back to showing the most recent game from the list.
+            // Note: The order of this list is determined by the Steam API and may not update instantly.
             if (recentResponse.ok) {
                 const recentData = await recentResponse.json();
                 const games = recentData.response?.games;
