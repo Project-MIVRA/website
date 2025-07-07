@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const chatInput = document.getElementById('chat-input');
-  const chatSend = document.getElementById('chat-send');
+  // The 'chat-send' button element is no longer needed.
 
   function appendMessage(message, isLocal = false) {
     if (!chatContainer) return;
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Event Listeners ---
-  chatSend?.addEventListener("click", sendMessage);
+  // The click listener for the send button has been removed.
   chatInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendMessage();
   });

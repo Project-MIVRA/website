@@ -186,24 +186,19 @@ h1 {
   max-height: 200px; /* Prevents expansion */
   min-height: 200px; /* Prevents shrinking */
   overflow-y: auto;
-  border: 1px solid #ccc;
   padding: 10px;
   margin-bottom: 10px;
   text-align: left;
-  background-color: #333;
+  background-color: transparent; /* Removed grey background */
+  border: none; /* Removed border */
 }
 
 #chat-input {
-  width: calc(100% - 70px);
+  width: 100%; /* Full width */
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-}
-
-#chat-send {
-  width: 60px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
+  background-color: #333; /* Darker input background */
+  color: #fff; /* White text */
+  box-sizing: border-box; /* Ensures padding is included in width */
 }
