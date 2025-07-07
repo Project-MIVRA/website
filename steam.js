@@ -15,12 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             const games = data.response?.games;
-
-            // The Steam API returns a list of recently played games.
-            // The first game in the list with a 'playtime_2weeks' property is often the most recent or current one.
-            // If 'playtime_forever' is greater than 'playtime_2weeks', it's a good indicator.
-            // A more reliable method requires checking the user's profile status, which is more complex.
-            // For this widget, we'll display the most recently played game.
             
             if (games && games.length > 0) {
                 const mostRecentGame = games[0];
@@ -48,6 +42,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     renderSteamStatus();
-    // Refresh every 5 minutes as Steam data doesn't change as frequently
     setInterval(renderSteamStatus, 300000); 
 });
