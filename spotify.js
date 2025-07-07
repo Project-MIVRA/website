@@ -5,8 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const nowPlayingEndpoint = '/api/spotify/now-playing';
     const devicesEndpoint = '/api/spotify/devices'; // Endpoint to get available devices
 
+    // A variable to hold the interval that updates the progress bar
     let progressInterval = null;
 
+    /**
+     * Formats the progress of the song into MM:SS format.
+     * @param {number} progressMs - The progress of the song in milliseconds.
+     * @returns {string} The formatted time string.
+     */
     const formatTime = (progressMs) => {
         if (typeof progressMs !== 'number') return '0:00';
         const totalSeconds = Math.floor(progressMs / 1000);
@@ -15,12 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
+    /**
+     * Fetches the currently playing song from the server and updates the widget.
+     */
     const renderSong = async () => {
         if (!spotifyWidget) {
             console.error('Spotify widget element not found.');
             return;
         }
 
+        // Clear any existing progress interval before fetching new data
         if (progressInterval) {
             clearInterval(progressInterval);
         }
@@ -82,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     : '';
 
                 spotifyWidget.innerHTML = `
-                    <h2>Now Playing on Spotify</h2>
+                    <h2>Now Playing</h2>
                     <a href="${songUrl}" target="_blank" rel="noopener noreferrer">
                         <img src="${albumImage}" alt="${albumName}">
                     </a>
