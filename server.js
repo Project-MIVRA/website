@@ -12,15 +12,11 @@ const fetch = require('node-fetch'); // Use node-fetch for server-side API calls
 const PORT = process.env.PORT || 3000;
 const DATA_FILE_PATH = path.join(__dirname, 'wishlist', 'wishlist-data.json');
 
-// Environment and Base URL from .env
-const { NODE_ENV, BASE_URL } = process.env;
-
 // Spotify Credentials from .env
 const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = process.env;
-const SPOTIFY_REDIRECT_URI = `${BASE_URL}/auth/callback`;
+const SPOTIFY_REDIRECT_URI = `http://localhost:${PORT}/auth/callback`;
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
-const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`;
 
 
 const app = express();
@@ -148,7 +144,7 @@ app.delete('/api/wishlist/:id', async (req, res) => {
 
 // --- Spotify API Endpoints ---
 
-// GET /api/spotify/now-playing - Secure endpoint for the client to fetch song data
+// GET /api/spotify/now-playing - Secure endpoint for the client to fetch data
 app.get('/api/spotify/now-playing', async (req, res) => {
     try {
         const accessToken = await getAccessToken();
@@ -163,10 +159,11 @@ app.get('/api/spotify/now-playing', async (req, res) => {
         });
 
         if (response.status === 204) {
+            // 204 No Content - Nothing is playing
             return res.status(204).send();
         }
         
-        if (response.status >= 400) {
+        if (response.status > 400) {
             const errorText = await response.text();
              return res.status(response.status).json({ message: 'Error from Spotify API.', details: errorText });
         }
@@ -180,41 +177,11 @@ app.get('/api/spotify/now-playing', async (req, res) => {
     }
 });
 
-// GET /api/spotify/devices - New endpoint to get available devices
-app.get('/api/spotify/devices', async (req, res) => {
-    try {
-        const accessToken = await getAccessToken();
-        if (!accessToken) {
-            return res.status(503).json({ message: 'Could not retrieve access token from Spotify.' });
-        }
+// --- Spotify Authentication Flow (for getting the initial refresh token) ---
 
-        const response = await fetch(DEVICES_ENDPOINT, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        });
-
-        if (response.status >= 400) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ message: 'Error from Spotify API.', details: errorText });
-        }
-        
-        const data = await response.json();
-        res.json(data);
-
-    } catch (error) {
-        console.error('Error in /api/spotify/devices:', error);
-        res.status(500).json({ message: 'Internal server error while fetching devices from Spotify.', error: error.message });
-    }
-});
-
-
-// --- Spotify Authentication Flow ---
-
-// GET /auth/login
+// GET /auth/login - Step 1: Redirect user to Spotify to authorize
 app.get('/auth/login', (req, res) => {
-    // Added 'user-read-currently-playing' to the scope
-    const scope = 'user-read-playback-state user-read-currently-playing';
+    const scope = 'user-read-currently-playing';
     res.redirect('https://accounts.spotify.com/authorize?' +
         new URLSearchParams({
             response_type: 'code',
@@ -224,7 +191,7 @@ app.get('/auth/login', (req, res) => {
         }).toString());
 });
 
-// GET /auth/callback
+// GET /auth/callback - Step 2: Exchange authorization code for tokens
 app.get('/auth/callback', async (req, res) => {
     const code = req.query.code || null;
 
@@ -247,7 +214,7 @@ app.get('/auth/callback', async (req, res) => {
 
         res.send(`
             <h1>Authentication Successful!</h1>
-            <p><strong>Your NEW Refresh Token is:</strong></p>
+            <p><strong>Your Refresh Token is:</strong></p>
             <pre>${refresh_token}</pre>
             <p>Copy this token and add it to your <code>.env</code> file as <code>SPOTIFY_REFRESH_TOKEN</code>.</p>
             <hr>
@@ -269,7 +236,10 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // --- Start Server ---
 app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
-    console.log(`To get your Spotify Refresh Token, visit the public URL:`);
-    console.log(`${BASE_URL}/auth/login`);
+    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log('To get your Spotify Refresh Token, visit:');
+    console.log(`http://localhost:${PORT}/auth/login`);
+    readWishlistData().then(writeWishlistData).catch(err => {
+        console.error("Error during initial check/creation of wishlist-data.json:", err);
+    });
 });

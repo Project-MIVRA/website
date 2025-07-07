@@ -1,18 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-122P6KETQN"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-122P6KETQN');
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Mini's page</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -92,12 +82,26 @@
           </div>
         </div>
         <div class="sidebar">
+          <div class="box" id="clock-widget">
+              <div id="clock-widget-time">--:--</div>
+              <p>Local Time</p>
+          </div>
           <div class="box" id="spotify-widget">
-            <h2 style="color:white">Now Playing</h2>
+            <h2>Now Playing</h2>
             <p>Loading...</p>
+          </div>
+          <div class="box" id="steam-widget">
+              <h2>Recently on Steam</h2>
+              <p>Loading...</p>
+          </div>
+          <div class="box" id="kofi-widget">
+              <script src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+              <script>kofiwidget2.init('Support Me on Ko-fi', '#29abe0', 'YOUR_KOFI_ID');kofiwidget2.draw();</script>
           </div>
         </div>
     </div>
     <script src="spotify.js"></script>
+    <script src="clock.js"></script>
+    <script src="steam.js"></script>
   </body>
 </html>
