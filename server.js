@@ -20,7 +20,7 @@ const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = proc
 const SPOTIFY_REDIRECT_URI = `${BASE_URL}/auth/callback`;
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
-const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`; // New endpoint for devices
+const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`;
 
 
 const app = express();
@@ -213,7 +213,8 @@ app.get('/api/spotify/devices', async (req, res) => {
 
 // GET /auth/login
 app.get('/auth/login', (req, res) => {
-    const scope = 'user-read-playback-state';
+    // Added 'user-read-currently-playing' to the scope
+    const scope = 'user-read-playback-state user-read-currently-playing';
     res.redirect('https://accounts.spotify.com/authorize?' +
         new URLSearchParams({
             response_type: 'code',
@@ -246,7 +247,7 @@ app.get('/auth/callback', async (req, res) => {
 
         res.send(`
             <h1>Authentication Successful!</h1>
-            <p><strong>Your Refresh Token is:</strong></p>
+            <p><strong>Your NEW Refresh Token is:</strong></p>
             <pre>${refresh_token}</pre>
             <p>Copy this token and add it to your <code>.env</code> file as <code>SPOTIFY_REFRESH_TOKEN</code>.</p>
             <hr>
