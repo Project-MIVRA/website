@@ -3,6 +3,11 @@ h1 {
     text-align: center;
 }
 
+a {
+  text-decoration: none;
+  color: #3367e1
+}
+
 .box {
     background-color: #000000a0;
     border: 2px solid #3367e1;
