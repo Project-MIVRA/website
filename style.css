@@ -183,11 +183,12 @@ h1 {
 
 #chat-container {
     margin-top: 20px;
-    max-width: 700px;
-    height: 400px;
+    width: 100%;
+    box-sizing: border-box;
+    height: 250px; /* Adjusted height */
     background: black;
     border: 1px solid #3367e1;
-    border-radius: 10px; /* Added rounded corners */
+    border-radius: 10px;
     color: #0f0;
     text-align: left;
     font-family: monospace;
@@ -200,6 +201,8 @@ h1 {
     display: flex;
     gap: 5px;
     margin-top: 10px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #chat-input {
@@ -211,7 +214,7 @@ h1 {
     text-align: left;
     color: #0f0;
     border: 1px solid #3367e1;
-    border-radius: 10px; /* Added rounded corners */
+    border-radius: 10px;
 }
 
 #chat-send {
@@ -221,6 +224,6 @@ h1 {
     background: black;
     color: #0f0;
     border: 1px solid #3367e1;
-    border-radius: 10px; /* Added rounded corners */
+    border-radius: 10px;
     cursor: pointer;
 }
