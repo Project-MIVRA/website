@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.onmessage = (event) => {
       let data;
       try {
+        // Attempt to parse the incoming message data as JSON
         data = JSON.parse(event.data);
-      } catch {
-        appendMessage(event.data); // Display raw message if not JSON
-        return;
+      } catch (error) {
+        return; 
       }
 
       // Handle server ping
