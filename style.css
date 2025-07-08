@@ -176,7 +176,10 @@ h1 {
     fill: currentColor;
 }
 
-
+/* Chat Widget */
+#chat-widget {
+    text-align: center;
+}
 
 #chat-container {
   margin-top: 20px;
@@ -185,6 +188,7 @@ h1 {
   background: black;
   border: 1px solid #3367e1;
   color: #0f0;
+  text-align: left;
   font-family: monospace;
   font-size: 14px;
   overflow-y: auto;
@@ -194,10 +198,11 @@ h1 {
 #chat-input {
   width: 80%;
   max-width: 600px;
-  padding: 8px 10px;
+  padding: 8px 8px;
   font-family: monospace;
   font-size: 14px;
   background: black;
+  text-align: left;
   color: #0f0;
   border: 1px solid #3367e1;
 }
