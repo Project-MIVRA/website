@@ -194,11 +194,12 @@ h1 {
 }
 
 #chat-input {
-  width: 100%; /* Full width */
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #333; /* Darker input background */
-  color: #fff; /* White text */
-  box-sizing: border-box; /* Ensures padding is included in width */
+  width: 80%;
+  max-width: 600px;
+  padding: 8px 10px;
+  font-family: monospace;
+  font-size: 14px;
+  background: black;
+  color: #0f0;
+  border: 1px solid #f00;
 }
