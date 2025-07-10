@@ -169,10 +169,28 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="about-owotrack"><a class="header" href="#about-owotrack">About owoTrack</a></h1>
-<pre><code class="language-admonish warning">owoTrack is mostly a proof of concept. Using phones for trackers does not lead to the best results, and fixing bad tracking quality is not always possible.
-</code></pre>
-<pre><code class="language-admonish danger">Strapping phones (or tablets) to your body can damage or break the devices, which can lead to you getting covered in broken glass. Take caution when strapping devices to you!
-</code></pre>
+<div id="admonition-warning" class="admonition admonish-warning" role="note" aria-labelledby="admonition-warning-title">
+<div class="admonition-title">
+<div id="admonition-warning-title">
+<p>Warning</p>
+</div>
+<a class="admonition-anchor-link" href="intro.html#admonition-warning"></a>
+</div>
+<div>
+<p>owoTrack is mostly a proof of concept. Using phones for trackers does not lead to the best results, and fixing bad tracking quality is not always possible.</p>
+</div>
+</div>
+<div id="admonition-danger" class="admonition admonish-danger" role="note" aria-labelledby="admonition-danger-title">
+<div class="admonition-title">
+<div id="admonition-danger-title">
+<p>Danger</p>
+</div>
+<a class="admonition-anchor-link" href="intro.html#admonition-danger"></a>
+</div>
+<div>
+<p>Strapping phones (or tablets) to your body can damage or break the devices, which can lead to you getting covered in broken glass. Take caution when strapping devices to you!</p>
+</div>
+</div>
 <p>owoTrack is an app for Android, iOS, and WearOS that allows you to use your phone, tablet, or smartwatch as a SlimeVR tracker for use in VR or motion capture.</p>
 <h1 id="downloads"><a class="header" href="#downloads">Downloads</a></h1>
 <p>Make sure you have installed the SlimeVR Server. You can click <a href="https://slimevr.dev/download">here</a> to download the installer.</p>
@@ -187,8 +205,17 @@
 <p>Setting up owoTrack shouldn't be too difficult. If you are using Android, owoTrack should automatically detect and connect to SlimeVR server. If you are using iOS, connecting owoTrack to SlimeVR server will be a little more difficult, as you will need to manually enter the ip address of the device running SlimeVR server. It is suggested to read the <a href="android/connecting.html">Android</a> and <a href="ios/connecting.html">iOS</a> connection guides for more info.</p>
 <h1 id="specs-of-phones"><a class="header" href="#specs-of-phones">Specs of phones</a></h1>
 <p>Some phones have better IMUs (Inertial Measurement Unit) than others. This can lead to some phones having better tracking quality than others, however it does depend on how the manufacturer has configered the phone. The IMU models used by many phones are documented on this site, but a better IMU doesn't always mean better tracking.</p>
-<pre><code class="language-admonish warning">Please do not buy phones for Full Body Tracking. They will be more expensive than buying SlimeVR Trackers, and offer worse tracking. It is reccomended to [buy](https://slimevr.dev/) or [build](https://docs.slimevr.dev/diy/index.html) actual SlimeVR Trackers instead.
-</code></pre>
+<div id="admonition-warning-1" class="admonition admonish-warning" role="note" aria-labelledby="admonition-warning-1-title">
+<div class="admonition-title">
+<div id="admonition-warning-1-title">
+<p>Warning</p>
+</div>
+<a class="admonition-anchor-link" href="intro.html#admonition-warning-1"></a>
+</div>
+<div>
+<p>Please do not buy phones for Full Body Tracking. They will be more expensive than buying SlimeVR Trackers, and offer worse tracking. It is reccomended to <a href="https://slimevr.dev/">buy</a> or <a href="https://docs.slimevr.dev/diy/index.html">build</a> actual SlimeVR Trackers instead.</p>
+</div>
+</div>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="movetrackvr"><a class="header" href="#movetrackvr">MoveTrackVR</a></h1>
 <p>moveTrackVR utilizes uncalibrated sensor data instead of the (Game) Rotation Vector. This approach bypasses any automated calibration algorithms implemented by the phone. Many phones incorporate customized sensor algorithms, including drift correction and custom dead zones, which vary across different devices. Unfortunately, the (Game) Rotation Vector on most phones tends to be unreliable due to these customized algorithms. moveTrackVR is compatible with SlimeVR.</p>
 <p>moveTrackVR is less known, but is the 2nd option if owoTrack doesn't find your sensors.</p>
