@@ -108,14 +108,28 @@ document.addEventListener('DOMContentLoaded', () => {
       // Handle incoming chat messages
       if (data.type === 'chat') {
         const originalMessage = data.message;
-        // Regex to find and remove TTS commands like [:t329,500]
+        // Regex to find TTS commands like [:t329,500]
         const ttsRegex = /\[:t\d+,\d+\]/g;
+        
+        // Check if the message contains TTS commands
+        const containedTts = ttsRegex.test(originalMessage);
+        
+        // Clean the message by removing the TTS commands
         const cleanedMessage = originalMessage.replace(ttsRegex, '').trim();
 
-        // Only display the message if there's content left after cleaning
+        // Determine the display name based on whether TTS commands were present
+        const displayName = containedTts ? `${data.name} (TTS)` : data.name;
+
+        // If there's text left after cleaning, display it.
         if (cleanedMessage) {
-          appendMessage(`${data.name}: ${cleanedMessage}`);
+          appendMessage(`${displayName}: ${cleanedMessage}`);
+        } 
+        // Otherwise, if the original message had TTS tones but no other text, show a placeholder.
+        else if (containedTts) {
+          appendMessage(`${displayName}: [TTS Tones]`);
         }
+        // If the message was empty to begin with, it will be ignored.
+
       } else if (data.type === 'system') {
         appendMessage(`[System] ${data.message}`, true);
         // Update name cookie if server confirms a name change
