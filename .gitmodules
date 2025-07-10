@@ -1,0 +1,3 @@
+[submodule "owoguide"]
+	path = owoguide
+	url = https://github.com/Project-MIVRA/owoGuide
