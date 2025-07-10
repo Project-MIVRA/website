@@ -3,6 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatInput = document.getElementById('chat-input');
   const chatSend = document.getElementById('chat-send'); // Re-added the send button element
 
+  // --- Input History ---
+  let messageHistory = [];
+  let historyIndex = -1;
+
   function appendMessage(message, isLocal = false) {
     if (!chatContainer) return;
     const p = document.createElement("p");
@@ -27,6 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
       chatInput.value = ""; // Clear input after handling
       return; // Stop message from being sent to chat
     }
+
+    // Add to history if it's not a duplicate of the last message
+    if (messageHistory.length === 0 || messageHistory[messageHistory.length - 1] !== msg) {
+        messageHistory.push(msg);
+    }
+    historyIndex = messageHistory.length; // Reset history index
 
     // Send chat message to WebSocket server
     socket.send(JSON.stringify({
@@ -175,8 +185,24 @@ document.addEventListener('DOMContentLoaded', () => {
   chatSend?.addEventListener("click", sendMessage);
   chatInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-        e.preventDefault(); // Prevent form submission or new line
+        e.preventDefault(); // Prevent default action
         sendMessage();
+    } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (historyIndex > 0) {
+            historyIndex--;
+            chatInput.value = messageHistory[historyIndex];
+        }
+    } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (historyIndex < messageHistory.length - 1) {
+            historyIndex++;
+            chatInput.value = messageHistory[historyIndex];
+        } else {
+            // If at the end of history, clear the input
+            historyIndex = messageHistory.length;
+            chatInput.value = "";
+        }
     }
   });
 
