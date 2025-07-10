@@ -183,4 +183,3 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial connection attempt
   connect();
 });
-
