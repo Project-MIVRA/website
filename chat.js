@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const chatInput = document.getElementById('chat-input');
-  const chatSend = document.getElementById('chat-send'); 
+  const chatSend = document.getElementById('chat-send'); // Re-added the send button element
 
   function appendMessage(message, isLocal = false) {
     if (!chatContainer) return;
@@ -94,6 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Attempt to parse the incoming message data as JSON
         data = JSON.parse(event.data);
       } catch (error) {
+        // If parsing fails, it's not in the expected format.
+        console.warn('Received a malformed WebSocket message, ignoring:', event.data);
         return; // Stop processing this message
       }
 
@@ -105,8 +107,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Handle incoming chat messages
       if (data.type === 'chat') {
-        if (data.message && data.message.trim() !== '') {
-          appendMessage(`${data.name}: ${data.message}`);
+        const originalMessage = data.message;
+        // Regex to find and remove TTS commands like [:t329,500]
+        const ttsRegex = /\[:t\d+,\d+\]/g;
+        const cleanedMessage = originalMessage.replace(ttsRegex, '').trim();
+
+        // Only display the message if there's content left after cleaning
+        if (cleanedMessage) {
+          appendMessage(`${data.name}: ${cleanedMessage}`);
         }
       } else if (data.type === 'system') {
         appendMessage(`[System] ${data.message}`, true);
@@ -150,9 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Event Listeners ---
-  chatSend?.addEventListener("click", sendMessage); // Re-added event listener for the send button
+  chatSend?.addEventListener("click", sendMessage);
   chatInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
+    if (e.key === "Enter") {
+        e.preventDefault(); // Prevent form submission or new line
+        sendMessage();
+    }
   });
 
   // Initial connection attempt
