@@ -157,6 +157,7 @@
 
             <style type="text/css"><![CDATA[
                 body {
+                    background-color: #1a1a1a;
                     background-image: url('/Assets/Mini-background.avif');
                     background-repeat: no-repeat;
                     background-attachment: fixed;
