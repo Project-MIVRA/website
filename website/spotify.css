@@ -1,0 +1,23 @@
+@keyframes scroll-text {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+.spotify-song-info h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Fallback for non-scrolling text */
+}
+
+/* This class is added by JavaScript when the text overflows */
+.spotify-song-info h3.scrolling span {
+    display: inline-block;
+    /* Start the text off-screen to the right */
+    padding-left: 100%;
+    /* The animation duration is set dynamically in spotify.js */
+    animation: scroll-text linear infinite;
+}

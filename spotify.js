@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="spotify-song-info">
                             <div class="spotify-status">
                                 ${statusIcon}
-                                <h3 title="${songName}">${songName}</h3>
+                                <h3 title="${songName}"><span>${songName}</span></h3>
                             </div>
                             <p class="spotify-artist" title="${artists}">${artists}</p>
                         </div>
@@ -115,6 +115,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     ${deviceHTML}
                 `;
+
+                // Handle scrolling for long song names
+                const songNameH3 = spotifyWidget.querySelector('.spotify-song-info h3');
+                if (songNameH3) {
+                    const songNameSpan = songNameH3.querySelector('span');
+                    // Check if text overflows
+                    if (songNameSpan && songNameSpan.scrollWidth > songNameH3.clientWidth) {
+                        songNameH3.classList.add('scrolling');
+                        // Set animation duration based on text length to maintain a consistent scroll speed
+                        const travelDistance = songNameSpan.scrollWidth + songNameH3.clientWidth;
+                        const duration = travelDistance / 50; // 50 pixels per second scroll speed
+                        songNameSpan.style.animationDuration = `${Math.max(5, duration)}s`;
+                    }
+                }
 
                 if (isPlaying) {
                     const progressBar = spotifyWidget.querySelector('.spotify-progress-bar');
