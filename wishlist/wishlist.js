@@ -81,6 +81,84 @@ function showCustomConfirm(message) {
     });
 }
 
+function showEditModal(item) {
+    return new Promise((resolve) => {
+        const modalId = 'editItemModal';
+        const existingModal = document.getElementById(modalId);
+        if (existingModal) existingModal.remove();
+
+        const modalHTML = `
+            <div id="${modalId}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100; font-family: 'Inter', sans-serif;">
+                <div style="background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 100%; max-width: 32rem; max-height: 90vh; overflow-y: auto;">
+                    <h3 style="font-size: 1.25rem; font-weight: 600; color: #1F2937; margin-bottom: 1rem;">Edit Wishlist Item</h3>
+                    <form id="editItemForm">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="editItemName" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Name</label>
+                            <input type="text" id="editItemName" value="${item.name}" required style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="editItemDescription" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Description</label>
+                            <textarea id="editItemDescription" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">${item.description || ''}</textarea>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="editItemPrice" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Price</label>
+                            <input type="text" id="editItemPrice" value="${item.price || ''}" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="editItemLink" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Product Link</label>
+                            <input type="text" id="editItemLink" value="${item.link || ''}" required style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="editItemImage" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Image URL</label>
+                            <input type="text" id="editItemImage" value="${item.imageUrl || ''}" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                        </div>
+                        <div style="margin-bottom: 1rem; display: flex; align-items: center;">
+                            <input type="checkbox" id="editItemPurchased" ${item.purchased ? 'checked' : ''} style="height: 1rem; width: 1rem; border-radius: 0.25rem; border-color: #D1D5DB;">
+                            <label for="editItemPurchased" style="margin-left: 0.5rem; font-size: 0.875rem; color: #374151;">Mark as Purchased</label>
+                        </div>
+                        <div id="editFormMessageBox" class="message-box-inline my-2 p-3 rounded-md text-sm" style="display: none;"></div>
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                            <button type="button" id="editCancelBtn" style="padding: 0.5rem 1rem; background-color: #E5E7EB; color: #374151; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">Cancel</button>
+                            <button type="submit" id="editSaveBtn" style="padding: 0.5rem 1rem; background-color: #4F46E5; color: white; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        const modalElement = document.getElementById(modalId);
+        const form = document.getElementById('editItemForm');
+        const cancelButton = document.getElementById('editCancelBtn');
+
+        cancelButton.onclick = () => {
+            modalElement.remove();
+            resolve(null); // Resolve with null on cancel
+        };
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const updatedItemData = {
+                name: document.getElementById('editItemName').value.trim(),
+                description: document.getElementById('editItemDescription').value.trim(),
+                price: document.getElementById('editItemPrice').value.trim(),
+                link: document.getElementById('editItemLink').value.trim(),
+                imageUrl: document.getElementById('editItemImage').value.trim(),
+                purchased: document.getElementById('editItemPurchased').checked,
+            };
+
+            // Basic validation
+            if (!updatedItemData.name || !updatedItemData.link) {
+                const editFormMessageBox = document.getElementById('editFormMessageBox');
+                displayMessage("Item Name and Product Link are required.", "error", editFormMessageBox, true);
+                return; // Prevent closing modal
+            }
+            modalElement.remove();
+            resolve(updatedItemData);
+        };
+    });
+}
+
 // --- Admin Page Specific Logic ---
 function initializeAdminPage() {
     const passwordModal = document.getElementById('passwordModal'); 
@@ -220,7 +298,39 @@ function initializeAdminPage() {
     // Event delegation for delete buttons on admin items
     if (adminWishlistContainer) {
         adminWishlistContainer.addEventListener('click', async (e) => {
-            if (e.target && e.target.classList.contains('delete-item-btn')) {
+            if (e.target && e.target.classList.contains('edit-item-btn')) {
+                if (sessionStorage.getItem('isAdminAuthenticated') !== 'true') {
+                    displayMessage("Authentication required to edit items.", "error", adminMessageBox);
+                    return;
+                }
+                const itemId = e.target.dataset.id;
+                const itemToEdit = wishlistItems.find(item => item.id === itemId);
+
+                if (itemToEdit) {
+                    const updatedItemData = await showEditModal(itemToEdit);
+                    if (updatedItemData) { // Proceed only if the modal was saved, not cancelled
+                        try {
+                            const response = await fetch(`${API_BASE_URL}/${itemId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(updatedItemData),
+                            });
+                            if (!response.ok) {
+                                const errorData = await response.json().catch(() => ({ message: `Server error: ${response.statusText}` }));
+                                throw new Error(errorData.message || `HTTP error ${response.status}`);
+                            }
+                            displayMessage("Item updated successfully.", "success", adminMessageBox);
+                            loadAndRenderItemsFromBackend(true, adminWishlistContainer, 'adminLoadingMessage', adminMessageBox);
+                        } catch (error) {
+                            console.error("Error updating item:", error);
+                            displayMessage(`Error updating item: ${error.message}`, "error", adminMessageBox, true);
+                        }
+                    }
+                } else {
+                    displayMessage("Could not find item to edit.", "error", adminMessageBox);
+                }
+
+            } else if (e.target && e.target.classList.contains('delete-item-btn')) {
                 if (sessionStorage.getItem('isAdminAuthenticated') !== 'true') {
                     displayMessage("Authentication required to delete items.", "error", adminMessageBox);
                     return;
@@ -254,28 +364,36 @@ function initializeAdminPage() {
     }
 }
 
-function renderAdminItems(items, container, loadingMsgId, msgBox) { 
+function renderAdminItems(items, container, loadingMsgId, msgBox) {
     const loadingMsgElement = document.getElementById(loadingMsgId);
-    if (loadingMsgElement) loadingMsgElement.style.display = 'none'; // Hide loading message
-    
-    container.innerHTML = ''; // Clear existing items
+    if (loadingMsgElement) loadingMsgElement.style.display = 'none';
+
+    container.innerHTML = '';
 
     if (items.length === 0) {
         container.innerHTML = '<p class="text-gray-500 col-span-full">No wishlist items found in the database.</p>';
         return;
     }
     
-    // Render each item
     items.forEach(item => {
         const itemElement = document.createElement('div');
-        itemElement.className = 'bg-white p-4 rounded-lg shadow-md flex flex-col justify-between'; // Tailwind classes for item card
+        const purchasedClass = item.purchased ? 'opacity-60 bg-gray-50' : 'bg-white';
+        itemElement.className = `p-4 rounded-lg shadow-md flex flex-col justify-between transition-all ${purchasedClass}`;
+
+        const placeholderImage = 'https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';
+        const imageSrc = item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : placeholderImage;
+
         itemElement.innerHTML = `
-            ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" class="w-full h-40 object-cover rounded-md mb-3" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"> <div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded-md mb-3 text-gray-400" style="display:none;">No Image</div>` : '<div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded-md mb-3 text-gray-400">No Image</div>'}
-            <h3 class="text-lg font-semibold text-gray-700 mb-1 truncate" title="${item.name}">${item.name}</h3>
-            <p class="text-sm text-gray-500 mb-1 truncate" title="${item.description || ''}">${item.description || 'No description'}</p>
-            <p class="text-md font-medium text-indigo-600 mb-3">${item.price || 'Price not set'}</p>
-            <div class="mt-auto">
-                <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="inline-block text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md mr-2 transition duration-150">View</a>
+            <div>
+                <img src="${imageSrc}" alt="${item.name || 'Wishlist Item'}" class="w-full h-40 object-cover rounded-md mb-3" onerror="this.onerror=null;this.src='${placeholderImage}';">
+                <h3 class="text-lg font-semibold text-gray-800 mb-1 truncate" title="${item.name}">${item.name}</h3>
+                <p class="text-sm text-gray-500 mb-2 flex-grow min-h-[40px]">${item.description || 'No description'}</p>
+                <p class="text-md font-medium text-indigo-600 mb-3">${item.price || 'Price not set'}</p>
+                <p class="text-xs text-gray-500 mb-3">Status: <span class="font-semibold ${item.purchased ? 'text-green-600' : 'text-yellow-600'}">${item.purchased ? 'Purchased' : 'Not Purchased'}</span></p>
+            </div>
+            <div class="admin-actions mt-auto border-t border-gray-200 pt-3 flex justify-end gap-2">
+                <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="inline-block text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-md transition duration-150">View</a>
+                <button data-id="${item.id}" class="edit-item-btn text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md transition duration-150">Edit</button>
                 <button data-id="${item.id}" class="delete-item-btn text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md transition duration-150">Delete</button>
             </div>
         `;
