@@ -215,12 +215,13 @@ function initializeAdminPage() {
         } else {
             passwordError.textContent = 'Incorrect password.';
             passwordInput.value = ''; // Clear password input
-            const passwordModalContent = passwordModal.querySelector('.modal-content');
+            const passwordModalContent = passwordModal.querySelector('.box');
             let modalMessageBox = passwordModalContent.querySelector('#modalMessageBox');
             if (!modalMessageBox) { // Create message box inside modal if it doesn't exist
                  modalMessageBox = document.createElement('div');
                  modalMessageBox.id = 'modalMessageBox';
-                 modalMessageBox.className = 'message-box-inline mt-3 p-3 rounded-md text-sm'; // Base class
+                 modalMessageBox.className = 'message-box-inline';
+                 modalMessageBox.style.marginTop = '15px';
                  passwordModalContent.appendChild(modalMessageBox);
             }
             displayMessage("Login failed: Incorrect password.", "error", modalMessageBox, false);
@@ -256,7 +257,8 @@ function initializeAdminPage() {
         if (!formMessageBox) { 
             formMessageBox = document.createElement('div');
             formMessageBox.id = 'formMessageBox';
-            formMessageBox.className = 'message-box-inline my-2 p-3 rounded-md text-sm'; // Tailwind classes
+            formMessageBox.className = 'message-box-inline';
+            formMessageBox.style.marginBottom = '1rem';
             // Insert before the submit button or at the end of the form
             const submitButton = addItemForm.querySelector('button[type="submit"]');
             if (submitButton) {
