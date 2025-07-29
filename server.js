@@ -93,12 +93,12 @@ app.get('/api/wishlist', async (req, res) => {
 // ADD a new wishlist item
 app.post('/api/wishlist', async (req, res) => {
     try {
-        const { name, price, link, image } = req.body;
+        const { name, description, price, link, imageUrl } = req.body;
         if (!name) {
             return res.status(400).json({ message: 'Item name is required.' });
         }
         const items = await readWishlistData();
-        const newItem = { id: generateUniqueId(), name, price: price || '', link: link || '', image: image || '', purchased: false };
+        const newItem = { id: generateUniqueId(), name, description: description || '', price: price || '', link: link || '', imageUrl: imageUrl || '', purchased: false, addedAt: new Date().toISOString() };
         items.push(newItem);
         await writeWishlistData(items);
         res.status(201).json(newItem);
@@ -111,7 +111,7 @@ app.post('/api/wishlist', async (req, res) => {
 app.put('/api/wishlist/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, price, link, image, purchased } = req.body;
+        const { name, description, price, link, imageUrl, purchased } = req.body;
         let items = await readWishlistData();
         const itemIndex = items.findIndex(item => item.id === id);
         if (itemIndex === -1) {
@@ -121,9 +121,10 @@ app.put('/api/wishlist/:id', async (req, res) => {
         // Update fields that are provided in the request body
         const updatedItem = { ...items[itemIndex] };
         if (name !== undefined) updatedItem.name = name;
+        if (description !== undefined) updatedItem.description = description;
         if (price !== undefined) updatedItem.price = price;
         if (link !== undefined) updatedItem.link = link;
-        if (image !== undefined) updatedItem.image = image;
+        if (imageUrl !== undefined) updatedItem.imageUrl = imageUrl;
         if (purchased !== undefined) updatedItem.purchased = purchased;
         
         items[itemIndex] = updatedItem;
