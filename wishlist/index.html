@@ -90,6 +90,15 @@
         box-shadow: 0 5px 15px rgba(51, 103, 225, 0.3);
       }
 
+      .wishlist-item.purchased {
+        opacity: 0.6;
+      }
+
+      .wishlist-item.purchased a {
+        cursor: default;
+        pointer-events: none;
+      }
+
       .wishlist-item a {
         text-decoration: none;
         color: #fff;
@@ -132,12 +141,26 @@
         flex-grow: 1;
       }
 
+      .item-price-and-status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 5px;
+      }
+
       .item-price {
         font-weight: bold;
         font-size: 1em;
         color: #33A1DE;
-        margin-top: auto;
-        padding-top: 5px;
+        margin: 0;
+      }
+
+      .item-status-purchased {
+        font-weight: bold;
+        color: #1DB954;
+        font-size: 0.9em;
+        margin: 0;
       }
       
       #publicLoadingMessage {

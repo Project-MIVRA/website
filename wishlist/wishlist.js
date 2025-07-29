@@ -447,6 +447,9 @@ function renderPublicItems(items, container, loadingMsgId, msgBox) {
     items.forEach(item => {
         const itemElement = document.createElement('li');
         itemElement.className = 'wishlist-item'; // Class from user's public HTML for styling
+        if (item.purchased) {
+            itemElement.classList.add('purchased');
+        }
 
         const placeholderImage = 'https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';
         const imageSrc = item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : placeholderImage;
@@ -457,7 +460,10 @@ function renderPublicItems(items, container, loadingMsgId, msgBox) {
                 <div class="item-info">
                     <div class="item-title">${item.name || 'Untitled Item'}</div>
                     ${item.description ? `<p class="item-description">${item.description}</p>` : '<p class="item-description">No description available.</p>'}
-                    ${item.price ? `<p class="item-price">${item.price}</p>` : '<p class="item-price">Price not listed</p>'}
+                    <div class="item-price-and-status">
+                        ${item.price ? `<p class="item-price">${item.price}</p>` : '<p class="item-price">Price not listed</p>'}
+                        ${item.purchased ? `<p class="item-status-purchased">Purchased</p>` : ''}
+                    </div>
                 </div>
             </a>
         `;
