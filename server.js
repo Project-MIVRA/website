@@ -79,7 +79,78 @@ const getSpotifyAccessToken = async () => {
 
 // --- API Endpoints ---
 
-// Previous Wishlist endpoints... (omitted for brevity, no changes needed)
+// --- Wishlist API Endpoints ---
+// GET all wishlist items
+app.get('/api/wishlist', async (req, res) => {
+    try {
+        const items = await readWishlistData();
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve wishlist items.' });
+    }
+});
+
+// ADD a new wishlist item
+app.post('/api/wishlist', async (req, res) => {
+    try {
+        const { name, price, link, image } = req.body;
+        if (!name) {
+            return res.status(400).json({ message: 'Item name is required.' });
+        }
+        const items = await readWishlistData();
+        const newItem = { id: generateUniqueId(), name, price: price || '', link: link || '', image: image || '', purchased: false };
+        items.push(newItem);
+        await writeWishlistData(items);
+        res.status(201).json(newItem);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to add item to wishlist.' });
+    }
+});
+
+// UPDATE a wishlist item
+app.put('/api/wishlist/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, price, link, image, purchased } = req.body;
+        let items = await readWishlistData();
+        const itemIndex = items.findIndex(item => item.id === id);
+        if (itemIndex === -1) {
+            return res.status(404).json({ message: 'Item not found.' });
+        }
+
+        // Update fields that are provided in the request body
+        const updatedItem = { ...items[itemIndex] };
+        if (name !== undefined) updatedItem.name = name;
+        if (price !== undefined) updatedItem.price = price;
+        if (link !== undefined) updatedItem.link = link;
+        if (image !== undefined) updatedItem.image = image;
+        if (purchased !== undefined) updatedItem.purchased = purchased;
+        
+        items[itemIndex] = updatedItem;
+
+        await writeWishlistData(items);
+        res.json(updatedItem);
+    } catch (error) {
+        console.error("Error updating item:", error);
+        res.status(500).json({ message: 'Failed to update item.' });
+    }
+});
+
+// DELETE a wishlist item
+app.delete('/api/wishlist/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        let items = await readWishlistData();
+        const filteredItems = items.filter(item => item.id !== id);
+        if (items.length === filteredItems.length) {
+            return res.status(404).json({ message: 'Item not found.' });
+        }
+        await writeWishlistData(filteredItems);
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to delete item.' });
+    }
+});
 
 // --- Spotify API Endpoints ---
 app.get('/api/spotify/now-playing', async (req, res) => {
