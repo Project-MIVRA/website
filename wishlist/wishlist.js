@@ -16,18 +16,29 @@ function displayMessage(text, type = 'success', targetElement = null, isSticky =
         return;
     }
     messageBox.innerHTML = '';
-    // Base classes for the message box itself, assuming Tailwind is used or these are defined
-    messageBox.className = 'message-box-inline p-3 rounded-md text-sm shadow'; 
-    
-    // Type-specific classes for background, border, and text color
+    // Style the message box to match the site's dark theme
+    messageBox.className = 'message-box-inline';
+    messageBox.style.padding = '15px';
+    messageBox.style.borderRadius = '10px';
+    messageBox.style.marginBottom = '15px';
+    messageBox.style.border = '1px solid';
+
     if (type === 'success') {
-        messageBox.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+        messageBox.style.backgroundColor = 'rgba(29, 185, 84, 0.2)';
+        messageBox.style.borderColor = '#1DB954';
+        messageBox.style.color = '#1DB954';
     } else if (type === 'error') {
-        messageBox.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+        messageBox.style.backgroundColor = 'rgba(229, 57, 53, 0.2)';
+        messageBox.style.borderColor = '#e53935';
+        messageBox.style.color = '#e53935';
     } else if (type === 'info') {
-        messageBox.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
-    } else { // Default styling if type is not matched
-        messageBox.classList.add('bg-gray-100', 'border', 'border-gray-400', 'text-gray-700');
+        messageBox.style.backgroundColor = 'rgba(51, 103, 225, 0.2)';
+        messageBox.style.borderColor = '#3367e1';
+        messageBox.style.color = '#3367e1';
+    } else { // Default styling
+        messageBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        messageBox.style.borderColor = '#ccc';
+        messageBox.style.color = '#fff';
     }
     
     const messageContent = document.createElement('p');
@@ -57,14 +68,14 @@ function showCustomConfirm(message) {
         const existingModal = document.getElementById(confirmModalId);
         if (existingModal) existingModal.remove();
 
-        // Modal HTML structure with inline styles for broad compatibility
+        // Modal HTML structure styled to match the site's theme
         const modalHTML = `
-            <div id="${confirmModalId}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100; font-family: 'Inter', sans-serif;">
-                <div style="background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 100%; max-width: 24rem;">
-                    <p style="color: #374151; font-size: 1.125rem; margin-bottom: 1rem; line-height: 1.5;">${message}</p>
+            <div id="${confirmModalId}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100;">
+                <div class="box" style="width: 100%; max-width: 24rem;">
+                    <p style="color: #fff; font-size: 1.125rem; margin-bottom: 1rem; line-height: 1.5;">${message}</p>
                     <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-                        <button id="confirmCancelBtn" style="padding: 0.5rem 1rem; background-color: #E5E7EB; color: #374151; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">Cancel</button>
-                        <button id="confirmOkBtn" style="padding: 0.5rem 1rem; background-color: #EF4444; color: white; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">OK</button>
+                        <button id="confirmCancelBtn" style="padding: 8px 12px; font-family: monospace; font-size: 14px; background: black; color: #fff; border: 1px solid #3367e1; border-radius: 10px; cursor: pointer;">Cancel</button>
+                        <button id="confirmOkBtn" style="padding: 8px 12px; font-family: monospace; font-size: 14px; background: black; color: #e53935; border: 1px solid #e53935; border-radius: 10px; cursor: pointer;">OK</button>
                     </div>
                 </div>
             </div>
@@ -87,39 +98,40 @@ function showEditModal(item) {
         const existingModal = document.getElementById(modalId);
         if (existingModal) existingModal.remove();
 
+        const inputStyle = `width: 100%; padding: 8px; font-family: monospace; font-size: 14px; background: black; text-align: left; color: #fff; border: 1px solid #3367e1; border-radius: 10px; box-sizing: border-box;`;
         const modalHTML = `
-            <div id="${modalId}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100; font-family: 'Inter', sans-serif;">
-                <div style="background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 100%; max-width: 32rem; max-height: 90vh; overflow-y: auto;">
-                    <h3 style="font-size: 1.25rem; font-weight: 600; color: #1F2937; margin-bottom: 1rem;">Edit Wishlist Item</h3>
+            <div id="${modalId}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100;">
+                <div class="box" style="width: 100%; max-width: 32rem; max-height: 90vh; overflow-y: auto;">
+                    <h3 style="font-size: 1.25rem; font-weight: 600; color: #fff; margin-bottom: 1rem;">Edit Wishlist Item</h3>
                     <form id="editItemForm">
                         <div style="margin-bottom: 1rem;">
-                            <label for="editItemName" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Name</label>
-                            <input type="text" id="editItemName" value="${item.name}" required style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                            <label for="editItemName" style="display: block; font-size: 0.875rem; font-weight: 500; color: #fff; margin-bottom: 0.5rem;">Name</label>
+                            <input type="text" id="editItemName" value="${item.name}" required style="${inputStyle}">
                         </div>
                         <div style="margin-bottom: 1rem;">
-                            <label for="editItemDescription" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Description</label>
-                            <textarea id="editItemDescription" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">${item.description || ''}</textarea>
+                            <label for="editItemDescription" style="display: block; font-size: 0.875rem; font-weight: 500; color: #fff; margin-bottom: 0.5rem;">Description</label>
+                            <textarea id="editItemDescription" rows="3" style="${inputStyle}">${item.description || ''}</textarea>
                         </div>
                         <div style="margin-bottom: 1rem;">
-                            <label for="editItemPrice" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Price</label>
-                            <input type="text" id="editItemPrice" value="${item.price || ''}" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                            <label for="editItemPrice" style="display: block; font-size: 0.875rem; font-weight: 500; color: #fff; margin-bottom: 0.5rem;">Price</label>
+                            <input type="text" id="editItemPrice" value="${item.price || ''}" style="${inputStyle}">
                         </div>
                         <div style="margin-bottom: 1rem;">
-                            <label for="editItemLink" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Product Link</label>
-                            <input type="text" id="editItemLink" value="${item.link || ''}" required style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                            <label for="editItemLink" style="display: block; font-size: 0.875rem; font-weight: 500; color: #fff; margin-bottom: 0.5rem;">Product Link</label>
+                            <input type="text" id="editItemLink" value="${item.link || ''}" required style="${inputStyle}">
                         </div>
                         <div style="margin-bottom: 1rem;">
-                            <label for="editItemImage" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Image URL</label>
-                            <input type="text" id="editItemImage" value="${item.imageUrl || ''}" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.375rem;">
+                            <label for="editItemImage" style="display: block; font-size: 0.875rem; font-weight: 500; color: #fff; margin-bottom: 0.5rem;">Image URL</label>
+                            <input type="text" id="editItemImage" value="${item.imageUrl || ''}" style="${inputStyle}">
                         </div>
                         <div style="margin-bottom: 1rem; display: flex; align-items: center;">
-                            <input type="checkbox" id="editItemPurchased" ${item.purchased ? 'checked' : ''} style="height: 1rem; width: 1rem; border-radius: 0.25rem; border-color: #D1D5DB;">
-                            <label for="editItemPurchased" style="margin-left: 0.5rem; font-size: 0.875rem; color: #374151;">Mark as Purchased</label>
+                            <input type="checkbox" id="editItemPurchased" ${item.purchased ? 'checked' : ''} style="height: 1rem; width: 1rem; accent-color: #3367e1;">
+                            <label for="editItemPurchased" style="margin-left: 0.5rem; font-size: 0.875rem; color: #fff;">Mark as Purchased</label>
                         </div>
                         <div id="editFormMessageBox" class="message-box-inline my-2 p-3 rounded-md text-sm" style="display: none;"></div>
                         <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
-                            <button type="button" id="editCancelBtn" style="padding: 0.5rem 1rem; background-color: #E5E7EB; color: #374151; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">Cancel</button>
-                            <button type="submit" id="editSaveBtn" style="padding: 0.5rem 1rem; background-color: #4F46E5; color: white; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">Save Changes</button>
+                            <button type="button" id="editCancelBtn" style="padding: 8px 12px; font-family: monospace; font-size: 14px; background: black; color: #fff; border: 1px solid #3367e1; border-radius: 10px; cursor: pointer;">Cancel</button>
+                            <button type="submit" id="editSaveBtn" style="padding: 8px 12px; font-family: monospace; font-size: 14px; background: #3367e1; color: white; border: 1px solid #3367e1; border-radius: 10px; cursor: pointer;">Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -377,24 +389,28 @@ function renderAdminItems(items, container, loadingMsgId, msgBox) {
     
     items.forEach(item => {
         const itemElement = document.createElement('div');
-        const purchasedClass = item.purchased ? 'opacity-60 bg-gray-50' : 'bg-white';
-        itemElement.className = `p-4 rounded-lg shadow-md flex flex-col justify-between transition-all ${purchasedClass}`;
+        itemElement.className = 'box';
+        if (item.purchased) {
+            itemElement.style.opacity = '0.6';
+        }
 
-        const placeholderImage = 'https://placehold.co/300x200/EFEFEF/AAAAAA?text=Image+Not+Found';
+        const placeholderImage = 'https://placehold.co/300x200/444/ccc?text=No+Image';
         const imageSrc = item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : placeholderImage;
 
         itemElement.innerHTML = `
-            <div>
-                <img src="${imageSrc}" alt="${item.name || 'Wishlist Item'}" class="w-full h-40 object-cover rounded-md mb-3" onerror="this.onerror=null;this.src='${placeholderImage}';">
-                <h3 class="text-lg font-semibold text-gray-800 mb-1 truncate" title="${item.name}">${item.name}</h3>
-                <p class="text-sm text-gray-500 mb-2 flex-grow min-h-[40px]">${item.description || 'No description'}</p>
-                <p class="text-md font-medium text-indigo-600 mb-3">${item.price || 'Price not set'}</p>
-                <p class="text-xs text-gray-500 mb-3">Status: <span class="font-semibold ${item.purchased ? 'text-green-600' : 'text-yellow-600'}">${item.purchased ? 'Purchased' : 'Not Purchased'}</span></p>
-            </div>
-            <div class="admin-actions mt-auto border-t border-gray-200 pt-3 flex justify-end gap-2">
-                <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="inline-block text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-md transition duration-150">View</a>
-                <button data-id="${item.id}" class="edit-item-btn text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md transition duration-150">Edit</button>
-                <button data-id="${item.id}" class="delete-item-btn text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md transition duration-150">Delete</button>
+            <div style="display: flex; flex-direction: column; height: 100%;">
+                <img src="${imageSrc}" alt="${item.name || 'Wishlist Item'}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 4px; margin-bottom: 15px;" onerror="this.onerror=null;this.src='${placeholderImage}';">
+                <div style="flex-grow: 1;">
+                    <h3 style="font-weight: bold; font-size: 1.2em; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;" title="${item.name}">${item.name}</h3>
+                    <p style="font-size: 0.9em; color: #ccc; margin: 0 0 10px 0; min-height: 40px;">${item.description || 'No description'}</p>
+                    <p style="font-size: 1em; font-weight: 500; color: #33A1DE; margin: 0 0 15px 0;">${item.price || 'Price not set'}</p>
+                    <p style="font-size: 0.8em; color: #ccc; margin: 0 0 15px 0;">Status: <span style="font-weight: bold; color: ${item.purchased ? '#1DB954' : '#f5c518'};">${item.purchased ? 'Purchased' : 'Not Purchased'}</span></p>
+                </div>
+                <div class="admin-actions" style="margin-top: auto; border-top: 1px solid #3367e140; padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <a href="${item.link}" target="_blank" rel="noopener noreferrer" style="padding: 6px 10px; font-family: monospace; font-size: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; text-decoration: none;">View</a>
+                    <button data-id="${item.id}" class="edit-item-btn" style="padding: 6px 10px; font-family: monospace; font-size: 12px; background: black; color: #fff; border: 1px solid #3367e1; border-radius: 10px; cursor: pointer;">Edit</button>
+                    <button data-id="${item.id}" class="delete-item-btn" style="padding: 6px 10px; font-family: monospace; font-size: 12px; background: black; color: #e53935; border: 1px solid #e53935; border-radius: 10px; cursor: pointer;">Delete</button>
+                </div>
             </div>
         `;
         container.appendChild(itemElement);
