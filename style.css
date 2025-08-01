@@ -243,3 +243,9 @@ a {
     /* The animation duration is set dynamically in spotify.js */
     animation: scroll-bidi linear infinite;
 }
+
+.spotify-song-info h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Fallback for non-scrolling text */
+}
