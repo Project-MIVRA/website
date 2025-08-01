@@ -109,7 +109,6 @@ a {
 .spotify-song-info {
     flex: 1;
     min-width: 0; 
-    overflow: hidden;
 }
 #spotify-widget .spotify-status {
     display: flex;
@@ -130,6 +129,7 @@ a {
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
+    min-width: 0;
 }
 #spotify-widget .spotify-artist {
     font-size: 0.9em;
@@ -139,6 +139,7 @@ a {
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 0;
+    min-width: 0;
 }
 #spotify-widget .spotify-progress-bar-container {
     width: 100%;
