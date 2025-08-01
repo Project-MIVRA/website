@@ -247,7 +247,7 @@ a {
 /* This class is added by JavaScript when the text overflows */
 #spotify-widget h3.scrolling,
 #spotify-widget .spotify-artist.scrolling {
-    text-overflow: clip;
+    overflow: visible;
 }
 
 #spotify-widget .scrolling span {
