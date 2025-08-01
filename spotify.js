@@ -139,11 +139,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
 
-                // Use a timeout to ensure the DOM is fully rendered before checking for overflow
-                setTimeout(() => {
+                // Use requestAnimationFrame to ensure the DOM is fully rendered before checking for overflow
+                requestAnimationFrame(() => {
                     handleScrollingText(spotifyWidget.querySelector('.spotify-song-info h3'));
                     handleScrollingText(spotifyWidget.querySelector('.spotify-artist'));
-                }, 0);
+                });
 
                 if (isPlaying) {
                     const progressBar = spotifyWidget.querySelector('.spotify-progress-bar');
