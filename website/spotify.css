@@ -1,9 +1,12 @@
-@keyframes scroll-text {
-    from {
-        transform: translateX(0);
+@keyframes scroll-bidi {
+    0%, 15% {
+        transform: translateX(0px);
     }
-    to {
-        transform: translateX(-100%);
+    50%, 65% {
+        transform: translateX(calc(var(--container-width) - var(--text-width)));
+    }
+    100% {
+        transform: translateX(0px);
     }
 }
 
@@ -14,10 +17,8 @@
 }
 
 /* This class is added by JavaScript when the text overflows */
-.spotify-song-info h3.scrolling span {
+.spotify-song-info h3.scrolling span, .spotify-artist.scrolling span {
     display: inline-block;
-    /* Start the text off-screen to the right */
-    padding-left: 100%;
     /* The animation duration is set dynamically in spotify.js */
-    animation: scroll-text linear infinite;
+    animation: scroll-bidi linear infinite;
 }

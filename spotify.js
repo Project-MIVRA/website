@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${statusIcon}
                                 <h3 title="${songName}"><span>${songName}</span></h3>
                             </div>
-                            <p class="spotify-artist" title="${artists}">${artists}</p>
+                            <p class="spotify-artist" title="${artists}"><span>${artists}</span></p>
                         </div>
                     </div>
                     <div class="spotify-progress-bar-container">
@@ -116,19 +116,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${deviceHTML}
                 `;
 
-                // Handle scrolling for long song names
-                const songNameH3 = spotifyWidget.querySelector('.spotify-song-info h3');
-                if (songNameH3) {
-                    const songNameSpan = songNameH3.querySelector('span');
-                    // Check if text overflows
-                    if (songNameSpan && songNameSpan.scrollWidth > songNameH3.clientWidth) {
-                        songNameH3.classList.add('scrolling');
-                        // Set animation duration based on text length to maintain a consistent scroll speed
-                        const travelDistance = songNameSpan.scrollWidth + songNameH3.clientWidth;
-                        const duration = travelDistance / 50; // 50 pixels per second scroll speed
-                        songNameSpan.style.animationDuration = `${Math.max(5, duration)}s`;
+                // Handle scrolling for long song and artist names
+                const handleScrollingText = (container) => {
+                    if (!container) return;
+                    const span = container.querySelector('span');
+                    if (!span) return;
+
+                    const containerWidth = container.clientWidth;
+                    const textWidth = span.scrollWidth;
+
+                    if (textWidth > containerWidth) {
+                        container.classList.add('scrolling');
+
+                        container.style.setProperty('--container-width', `${containerWidth}px`);
+                        container.style.setProperty('--text-width', `${textWidth}px`);
+
+                        const travelDistance = textWidth - containerWidth;
+                        const duration = (2 * travelDistance) / 50; // 50 pixels per second scroll speed
+                        span.style.animationDuration = `${Math.max(5, duration)}s`;
+                    } else {
+                        container.classList.remove('scrolling');
                     }
-                }
+                };
+
+                handleScrollingText(spotifyWidget.querySelector('.spotify-song-info h3'));
+                handleScrollingText(spotifyWidget.querySelector('.spotify-artist'));
 
                 if (isPlaying) {
                     const progressBar = spotifyWidget.querySelector('.spotify-progress-bar');
