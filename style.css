@@ -234,13 +234,13 @@ a {
 /* Scrolling text for Spotify widget */
 @keyframes scroll-bidi {
     0%, 15% {
-        transform: translateX(0px);
+        transform: translateX(0);
     }
     50%, 65% {
-        transform: translateX(calc(var(--container-width) - var(--text-width)));
+        transform: translateX(calc(var(--container-width) - var(--text-width) - 1px));
     }
     100% {
-        transform: translateX(0px);
+        transform: translateX(0);
     }
 }
 
