@@ -223,3 +223,23 @@ a {
     border-radius: 10px;
     cursor: pointer;
 }
+
+/* Scrolling text for Spotify widget */
+@keyframes scroll-bidi {
+    0%, 15% {
+        transform: translateX(0px);
+    }
+    50%, 65% {
+        transform: translateX(calc(var(--container-width) - var(--text-width)));
+    }
+    100% {
+        transform: translateX(0px);
+    }
+}
+
+/* This class is added by JavaScript when the text overflows */
+.spotify-song-info h3.scrolling span, .spotify-artist.scrolling span {
+    display: inline-block;
+    /* The animation duration is set dynamically in spotify.js */
+    animation: scroll-bidi linear infinite;
+}
