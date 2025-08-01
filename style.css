@@ -131,6 +131,7 @@ a {
     text-overflow: ellipsis;
     margin: 0;
     min-width: 0;
+    flex: 1;
 }
 #spotify-widget .spotify-artist {
     font-size: 0.9em;
