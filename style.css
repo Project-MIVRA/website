@@ -109,6 +109,7 @@ a {
 .spotify-song-info {
     flex: 1;
     min-width: 0; 
+    overflow: hidden;
 }
 #spotify-widget .spotify-status {
     display: flex;
@@ -238,14 +239,12 @@ a {
 }
 
 /* This class is added by JavaScript when the text overflows */
+#spotify-widget h3.scrolling, #spotify-widget .spotify-artist.scrolling {
+    overflow: visible;
+}
+
 .spotify-song-info h3.scrolling span, .spotify-artist.scrolling span {
     display: inline-block;
     /* The animation duration is set dynamically in spotify.js */
     animation: scroll-bidi linear infinite;
-}
-
-.spotify-song-info h3 {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis; /* Fallback for non-scrolling text */
 }
