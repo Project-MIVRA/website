@@ -27,6 +27,9 @@ const STEAM_RECENTLY_PLAYED_ENDPOINT = `http://api.steampowered.com/IPlayerServi
 const STEAM_PLAYER_SUMMARY_ENDPOINT = `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
 
 
+// In-memory store for current activity
+let currentActivity = { text: 'Just chilling...' };
+
 const app = express();
 
 // --- Middleware ---
@@ -212,6 +215,20 @@ app.get('/api/steam/recently-played', async (req, res) => {
         console.error('Error fetching from Steam Recently Played API:', error);
         res.status(500).json({ message: 'Internal server error while fetching from Steam.' });
     }
+});
+
+// --- Activity API Endpoints ---
+app.get('/api/activity', (req, res) => {
+    res.json(currentActivity);
+});
+
+app.post('/api/activity', (req, res) => {
+    const { text } = req.body;
+    if (!text || typeof text !== 'string') {
+        return res.status(400).json({ message: 'Activity text is required and must be a string.' });
+    }
+    currentActivity = { text };
+    res.status(200).json({ message: 'Activity updated successfully' });
 });
 
 
