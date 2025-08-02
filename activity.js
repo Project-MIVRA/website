@@ -19,5 +19,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     fetchActivity();
-    setInterval(fetchActivity, 30000);
+    setInterval(fetchActivity, 5000);
 });
