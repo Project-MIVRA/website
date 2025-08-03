@@ -135,11 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             const span = container.querySelector('span');
                             if (!span) return false;
 
-                            const containerWidth = container.clientWidth;
-                            const textWidth = span.scrollWidth;
-
-                            if (textWidth > containerWidth) {
+                            // Use scrollWidth and clientWidth of the container to detect overflow
+                            if (container.scrollWidth > container.clientWidth) {
                                 container.classList.add('scrolling');
+
+                                const containerWidth = container.clientWidth;
+                                const textWidth = container.scrollWidth;
+
                                 container.style.setProperty('--container-width', `${containerWidth}px`);
                                 container.style.setProperty('--text-width', `${textWidth}px`);
 
