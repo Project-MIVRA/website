@@ -233,15 +233,12 @@ a {
 }
 
 /* Scrolling text for Spotify widget */
-@keyframes scroll-bidi {
-    0%, 15% {
-        transform: translateX(0);
+@keyframes marquee {
+    from {
+        transform: translateX(var(--container-width));
     }
-    50%, 65% {
-        transform: translateX(calc(var(--container-width) - var(--text-width) - 1px));
-    }
-    100% {
-        transform: translateX(0);
+    to {
+        transform: translateX(calc(-1 * var(--text-width)));
     }
 }
 
@@ -254,5 +251,5 @@ a {
 #spotify-widget .scrolling span {
     display: inline-block;
     /* The animation duration is set dynamically in spotify.js */
-    animation: scroll-bidi linear infinite;
+    animation: marquee linear infinite;
 }

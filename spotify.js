@@ -139,8 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             container.style.setProperty('--container-width', `${containerWidth}px`);
                             container.style.setProperty('--text-width', `${textWidth}px`);
 
-                            const travelDistance = textWidth - containerWidth;
-                            const duration = (2 * travelDistance) / 50; // 50 pixels per second scroll speed
+                            const travelDistance = textWidth + containerWidth;
+                            const duration = travelDistance / 50; // 50 pixels per second scroll speed
                             span.style.animationDuration = `${Math.max(5, duration)}s`;
                         } else {
                             container.classList.remove('scrolling');
