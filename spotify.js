@@ -124,33 +124,45 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${deviceHTML}
                     `;
 
-                    // Handle scrolling for long song and artist names
-                    const handleScrollingText = (container) => {
-                        if (!container) return;
-                        const span = container.querySelector('span');
-                        if (!span) return;
-
-                        const containerWidth = container.clientWidth;
-                        const textWidth = span.scrollWidth;
-
-                        if (textWidth > containerWidth) {
-                            container.classList.add('scrolling');
-
-                            container.style.setProperty('--container-width', `${containerWidth}px`);
-                            container.style.setProperty('--text-width', `${textWidth}px`);
-
-                            const travelDistance = textWidth + containerWidth;
-                            const duration = travelDistance / 50; // 50 pixels per second scroll speed
-                            span.style.animationDuration = `${Math.max(5, duration)}s`;
-                        } else {
-                            container.classList.remove('scrolling');
-                        }
-                    };
-
                     // Use requestAnimationFrame to ensure the DOM is fully rendered before checking for overflow
                     requestAnimationFrame(() => {
-                        handleScrollingText(spotifyWidget.querySelector('.spotify-song-info h3'));
-                        handleScrollingText(spotifyWidget.querySelector('.spotify-artist'));
+                        const songTitleElement = spotifyWidget.querySelector('.spotify-song-info h3');
+                        const artistElement = spotifyWidget.querySelector('.spotify-artist');
+                        const songInfoContainer = spotifyWidget.querySelector('.spotify-song-info');
+
+                        const handleScrollingText = (container) => {
+                            if (!container) return false;
+                            const span = container.querySelector('span');
+                            if (!span) return false;
+
+                            const containerWidth = container.clientWidth;
+                            const textWidth = span.scrollWidth;
+
+                            if (textWidth > containerWidth) {
+                                container.classList.add('scrolling');
+                                container.style.setProperty('--container-width', `${containerWidth}px`);
+                                container.style.setProperty('--text-width', `${textWidth}px`);
+
+                                const travelDistance = textWidth + containerWidth;
+                                const duration = travelDistance / 50; // 50 pixels per second scroll speed
+                                span.style.animationDuration = `${Math.max(5, duration)}s`;
+                                return true;
+                            } else {
+                                container.classList.remove('scrolling');
+                                return false;
+                            }
+                        };
+
+                        const isTitleScrolling = handleScrollingText(songTitleElement);
+                        const isArtistScrolling = handleScrollingText(artistElement);
+
+                        if (songInfoContainer) {
+                            if (isTitleScrolling || isArtistScrolling) {
+                                songInfoContainer.classList.add('is-scrolling');
+                            } else {
+                                songInfoContainer.classList.remove('is-scrolling');
+                            }
+                        }
                     });
 
                     if (isPlaying) {

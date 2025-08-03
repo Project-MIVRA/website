@@ -115,6 +115,9 @@ a {
     justify-content: center;
     overflow: hidden;
 }
+.spotify-song-info.is-scrolling {
+    overflow: visible;
+}
 #spotify-widget .spotify-status {
     display: flex;
     align-items: center;
