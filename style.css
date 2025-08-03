@@ -33,7 +33,7 @@ a {
 }
 
 .sidebar {
-    flex: 1 1 320px;
+    flex: 0 1 320px;
     min-width: 320px;
 }
 
