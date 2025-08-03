@@ -115,11 +115,6 @@ a {
     justify-content: center;
     overflow: hidden;
 }
-.spotify-song-info.is-scrolling {
-    overflow: visible;
-    min-width: auto;
-    flex: none;
-}
 #spotify-widget .spotify-status {
     display: flex;
     align-items: center;
@@ -238,12 +233,15 @@ a {
 }
 
 /* Scrolling text for Spotify widget */
-@keyframes marquee {
-    from {
-        transform: translateX(var(--container-width));
+@keyframes scroll-bidi {
+    0%, 15% {
+        transform: translateX(0);
     }
-    to {
-        transform: translateX(calc(-1 * var(--text-width)));
+    50%, 65% {
+        transform: translateX(calc(var(--container-width) - var(--text-width)));
+    }
+    100% {
+        transform: translateX(0);
     }
 }
 
@@ -257,5 +255,5 @@ a {
 #spotify-widget h3.scrolling span,
 #spotify-widget .spotify-artist.scrolling span {
     display: inline-block;
-    animation: marquee linear infinite;
+    animation: scroll-bidi linear infinite;
 }

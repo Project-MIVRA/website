@@ -145,8 +145,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 container.style.setProperty('--container-width', `${containerWidth}px`);
                                 container.style.setProperty('--text-width', `${textWidth}px`);
 
-                                const travelDistance = textWidth + containerWidth;
-                                const duration = travelDistance / 50; // 50 pixels per second scroll speed
+                                const travelDistance = textWidth - containerWidth;
+                                // Bi-directional scroll: (2 * distance) / 50px/s
+                                const duration = (travelDistance / 25);
                                 span.style.animationDuration = `${Math.max(5, duration)}s`;
                                 return true;
                             } else {
@@ -155,16 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         };
 
-                        const isTitleScrolling = handleScrollingText(songTitleElement);
-                        const isArtistScrolling = handleScrollingText(artistElement);
-
-                        if (songInfoContainer) {
-                            if (isTitleScrolling || isArtistScrolling) {
-                                songInfoContainer.classList.add('is-scrolling');
-                            } else {
-                                songInfoContainer.classList.remove('is-scrolling');
-                            }
-                        }
+                        handleScrollingText(songTitleElement);
+                        handleScrollingText(artistElement);
                     });
 
                     if (isPlaying) {
