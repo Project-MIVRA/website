@@ -41,10 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const [songResponse, devicesResponse] = await Promise.all([
-                fetch(nowPlayingEndpoint),
-                fetch(devicesEndpoint)
-            ]);
+            const songResponse = await fetch(nowPlayingEndpoint);
 
             if (songResponse.status === 204) {
                 showNothingPlaying();
@@ -54,6 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!songResponse.ok) {
                 throw new Error('Failed to fetch song data.');
             }
+
+            const devicesResponse = await fetch(devicesEndpoint).catch(e => {
+                console.warn('Could not fetch device list.', e);
+                return null; // Proceed without device info on failure
+            });
 
             const song = await songResponse.json();
 
@@ -76,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isPlaying = song.is_playing;
 
                     let deviceName = null;
-                    if (devicesResponse.ok) {
+                    if (devicesResponse && devicesResponse.ok) {
                         const devicesData = await devicesResponse.json();
                         const activeDevice = devicesData.devices?.find(d => d.is_active);
                         if (activeDevice) deviceName = activeDevice.name;
