@@ -115,17 +115,25 @@ a {
     justify-content: center;
     overflow: hidden;
 }
+.spotify-song-info.is-scrolling {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
 #spotify-widget .spotify-status {
     display: flex;
     align-items: center;
     margin-bottom: 0.25rem;
+    position: relative;
+    padding-left: 28px; /* Space for SVG icon */
 }
 #spotify-widget .spotify-status svg {
     width: 20px;
     height: 20px;
     fill: #1DB954;
-    flex-shrink: 0;
-    margin-right: 0.5rem;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
 }
 #spotify-widget h3 {
     font-weight: bold;

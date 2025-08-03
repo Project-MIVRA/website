@@ -159,8 +159,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         };
 
-                        handleScrollingText(songTitleElement);
-                        handleScrollingText(artistElement);
+                        const isTitleScrolling = handleScrollingText(songTitleElement);
+                        const isArtistScrolling = handleScrollingText(artistElement);
+
+                        if (songInfoContainer) {
+                            if (isTitleScrolling || isArtistScrolling) {
+                                songInfoContainer.classList.add('is-scrolling');
+                            } else {
+                                songInfoContainer.classList.remove('is-scrolling');
+                            }
+                        }
                     });
 
                     if (isPlaying) {
