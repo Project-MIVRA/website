@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // A variable to hold the interval that updates the progress bar
     let progressInterval = null;
     let currentSongId = null; // To track the current song and avoid re-rendering
+    let fetchFailureCount = 0;
+    const FETCH_FAILURE_THRESHOLD = 3;
 
     /**
      * Formats the progress of the song into MM:SS format.
@@ -44,13 +46,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const songResponse = await fetch(nowPlayingEndpoint);
 
             if (songResponse.status === 204) {
+                fetchFailureCount = 0; // Successful request, even if nothing is playing
                 showNothingPlaying();
                 return false;
             }
 
             if (!songResponse.ok) {
-                throw new Error('Failed to fetch song data.');
+                throw new Error(`Failed to fetch song data with status: ${songResponse.status}`);
             }
+
+            fetchFailureCount = 0; // Reset on any successful request
 
             const devicesResponse = await fetch(devicesEndpoint).catch(e => {
                 console.warn('Could not fetch device list.', e);
@@ -241,10 +246,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
         } catch (error) {
-            console.error('Error rendering song:', error);
-            spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Could not load Spotify data. Retrying automatically.</p>`;
-            if (progressInterval) clearInterval(progressInterval);
-            currentSongId = null; // Reset on error to allow re-render on next successful poll
+            fetchFailureCount++;
+            console.error(`Error rendering song (attempt ${fetchFailureCount}/${FETCH_FAILURE_THRESHOLD}):`, error.message);
+
+            if (fetchFailureCount >= FETCH_FAILURE_THRESHOLD) {
+                spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Could not load Spotify data. Retrying automatically.</p>`;
+                if (progressInterval) clearInterval(progressInterval);
+                currentSongId = null; // Reset on error to allow re-render on next successful poll
+            }
             return false;
         }
     };
