@@ -252,8 +252,8 @@ a {
     min-width: initial;
 }
 
-#spotify-widget .scrolling span {
+#spotify-widget h3.scrolling span,
+#spotify-widget .spotify-artist.scrolling span {
     display: inline-block;
-    /* The animation duration is set dynamically in spotify.js */
     animation: marquee linear infinite;
 }
