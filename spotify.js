@@ -162,8 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 container.style.setProperty('--text-width', `${textWidth}px`);
 
                                 const travelDistance = textWidth - containerWidth;
-                                // Bi-directional scroll: (2 * distance) / 50px/s
-                                const duration = (travelDistance / 25);
+                                // Bi-directional scroll: (2 * distance) / 40px/s
+                                const duration = (travelDistance / 20);
                                 span.style.animationDuration = `${Math.max(5, duration)}s`;
                                 return true;
                             } else {
