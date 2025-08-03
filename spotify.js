@@ -22,6 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
+    const showNothingPlaying = () => {
+        if (currentSongId !== null) { // Only update if state changes from playing to not
+            spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Nothing is currently playing on Spotify.</p>`;
+            if (progressInterval) clearInterval(progressInterval);
+            progressInterval = null;
+            currentSongId = null;
+        }
+    };
+
     /**
      * Fetches the currently playing song from the server and updates the widget.
      */
@@ -38,12 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]);
 
             if (songResponse.status === 204) {
-                if (currentSongId !== null) { // Only update if state changes from playing to not
-                    spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Nothing is currently playing on Spotify.</p>`;
-                    if (progressInterval) clearInterval(progressInterval);
-                    progressInterval = null;
-                    currentSongId = null;
-                }
+                showNothingPlaying();
                 return;
             }
 
@@ -207,21 +211,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // Case where song object is null/empty but response was not 204
-                if (currentSongId !== null) {
-                    spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Nothing is currently playing on Spotify.</p>`;
-                    if (progressInterval) clearInterval(progressInterval);
-                    progressInterval = null;
-                    currentSongId = null;
-                }
+                showNothingPlaying();
             }
         } catch (error) {
             console.error('Error rendering song:', error);
-            spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Could not load Spotify data.</p>`;
+            spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Could not load Spotify data. Retrying automatically.</p>`;
             if (progressInterval) clearInterval(progressInterval);
             currentSongId = null; // Reset on error to allow re-render on next successful poll
         }
     };
 
-    renderSong();
-    setInterval(renderSong, 5000);
+    const poll = async () => {
+        await renderSong();
+        setTimeout(poll, 3000);
+    };
+
+    poll();
 });
