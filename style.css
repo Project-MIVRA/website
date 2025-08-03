@@ -249,6 +249,7 @@ a {
 #spotify-widget h3.scrolling,
 #spotify-widget .spotify-artist.scrolling {
     overflow: visible;
+    min-width: initial;
 }
 
 #spotify-widget .scrolling span {
