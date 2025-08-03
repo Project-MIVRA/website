@@ -121,8 +121,8 @@ a {
     min-width: 0;
 }
 .spotify-song-info.is-scrolling {
-    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
 }
 #spotify-widget .spotify-status {
     margin-bottom: 0.25rem;
