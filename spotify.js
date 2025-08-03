@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (songResponse.status === 204) {
                 showNothingPlaying();
-                return;
+                return false;
             }
 
             if (!songResponse.ok) {
@@ -232,21 +232,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         }, 1000);
                     }
                 }
+                return true;
             } else {
                 // Case where song object is null/empty but response was not 204
                 showNothingPlaying();
+                return false;
             }
         } catch (error) {
             console.error('Error rendering song:', error);
             spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Could not load Spotify data. Retrying automatically.</p>`;
             if (progressInterval) clearInterval(progressInterval);
             currentSongId = null; // Reset on error to allow re-render on next successful poll
+            return false;
         }
     };
 
     const poll = async () => {
-        await renderSong();
-        setTimeout(poll, 3000);
+        const isPlaying = await renderSong();
+        const pollInterval = isPlaying ? 1500 : 5000;
+        setTimeout(poll, pollInterval);
     };
 
     poll();
