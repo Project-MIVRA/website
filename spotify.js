@@ -137,11 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Use scrollWidth and clientWidth of the container to detect overflow
                             if (container.scrollWidth > container.clientWidth) {
-                                container.classList.add('scrolling');
-
+                                // First, measure the element's dimensions *before* changing its styles.
                                 const containerWidth = container.clientWidth;
                                 const textWidth = container.scrollWidth;
 
+                                // Now, add the class that changes its flex behaviour.
+                                container.classList.add('scrolling');
+
+                                // Set the CSS variables for the animation.
                                 container.style.setProperty('--container-width', `${containerWidth}px`);
                                 container.style.setProperty('--text-width', `${textWidth}px`);
 
