@@ -110,7 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="spotify-song-info">
                                 <div class="spotify-status">
                                     ${statusIcon}
-                                    <h3 title="${songName}"><span>${songName}</span></h3>
+                                    <div class="spotify-title-container">
+                                        <h3 title="${songName}"><span>${songName}</span></h3>
+                                    </div>
                                 </div>
                                 <p class="spotify-artist" title="${artists}"><span>${artists}</span></p>
                             </div>
