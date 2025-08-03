@@ -247,9 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             fetchFailureCount++;
-            console.error(`Error rendering song (attempt ${fetchFailureCount}/${FETCH_FAILURE_THRESHOLD}):`, error.message);
 
             if (fetchFailureCount >= FETCH_FAILURE_THRESHOLD) {
+                console.error(`Error rendering song (final attempt):`, error.message);
                 spotifyWidget.innerHTML = `<h2>Now Playing</h2><p>Could not load Spotify data. Retrying automatically.</p>`;
                 if (progressInterval) clearInterval(progressInterval);
                 currentSongId = null; // Reset on error to allow re-render on next successful poll

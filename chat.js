@@ -105,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         data = JSON.parse(event.data);
       } catch (error) {
         // If parsing fails, it's not in the expected format.
-        console.warn('Received a malformed WebSocket message, ignoring:', event.data);
         return; // Stop processing this message
       }
 
