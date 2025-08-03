@@ -94,6 +94,22 @@
           </div>
         </div>
         <div class="sidebar">
+          <div class="box" id="clock-widget">
+              <div id="clock-widget-time">--:--</div>
+              <p>Local Time</p>
+          </div>
+          <div class="box" id="spotify-widget">
+            <h2>Now Playing</h2>
+            <p>Loading...</p>
+          </div>
+          <div class="box" id="activity-widget">
+            <h2>Current Mini activity</h2>
+            <p>Loading...</p>
+          </div>
+          <div class="box" id="steam-widget">
+              <h2>Recently on Steam</h2>
+              <p>Loading...</p>
+          </div>
           <div class="box" id="chat-widget">
             <h2>Chat</h2>
             <div id="chat-container"></div>
@@ -102,6 +118,10 @@
           </div>
         </div>
     </div>
+    <script src="spotify.js"></script>
+    <script src="clock.js"></script>
+    <script src="steam.js"></script>
+    <script src="activity.js"></script>
     <script src="chat.js"></script>
   </body>
 </html>
