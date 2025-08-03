@@ -117,6 +117,8 @@ a {
 }
 .spotify-song-info.is-scrolling {
     overflow: visible;
+    min-width: auto;
+    flex: none;
 }
 #spotify-widget .spotify-status {
     display: flex;
