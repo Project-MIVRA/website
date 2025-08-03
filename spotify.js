@@ -109,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="spotify-song-info">
                                 <div class="spotify-status">
-                                    ${statusIcon}
                                     <div class="spotify-title-container">
                                         <h3 title="${songName}"><span>${songName}</span></h3>
                                     </div>
@@ -117,11 +116,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <p class="spotify-artist" title="${artists}"><span>${artists}</span></p>
                             </div>
                         </div>
-                        <div class="spotify-progress-bar-container">
-                            <div class="spotify-progress-bar" style="width: ${progressPercent}%;"></div>
-                        </div>
-                        <div class="spotify-progress-time">
-                            <span>${formatTime(progressMs)} / ${formatTime(durationMs)}</span>
+                        <div class="spotify-controls">
+                            ${statusIcon}
+                            <div class="spotify-progress-wrapper">
+                                <div class="spotify-progress-bar-container">
+                                    <div class="spotify-progress-bar" style="width: ${progressPercent}%;"></div>
+                                </div>
+                                <div class="spotify-progress-time">
+                                    <span>${formatTime(progressMs)} / ${formatTime(durationMs)}</span>
+                                </div>
+                            </div>
                         </div>
                         ${deviceHTML}
                     `;
@@ -199,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const progressBar = spotifyWidget.querySelector('.spotify-progress-bar');
                     const progressTime = spotifyWidget.querySelector('.spotify-progress-time span');
-                    const statusIconContainer = spotifyWidget.querySelector('.spotify-status');
+                    const statusIconContainer = spotifyWidget.querySelector('.spotify-controls');
 
                     if (progressBar) progressBar.style.width = `${(progressMs / durationMs) * 100}%`;
                     if (progressTime) progressTime.textContent = `${formatTime(progressMs)} / ${formatTime(durationMs)}`;

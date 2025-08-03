@@ -121,20 +121,27 @@ a {
     min-width: 0;
 }
 .spotify-song-info.is-scrolling {
-    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
 }
 #spotify-widget .spotify-status {
-    display: flex;
-    align-items: center;
     margin-bottom: 0.25rem;
 }
-#spotify-widget .spotify-status svg {
+#spotify-widget .spotify-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+#spotify-widget .spotify-controls svg {
     width: 20px;
     height: 20px;
     fill: #1DB954;
     flex-shrink: 0;
-    margin-right: 0.5rem;
+}
+#spotify-widget .spotify-progress-wrapper {
+    flex: 1;
+    min-width: 0;
 }
 #spotify-widget h3 {
     font-weight: bold;
@@ -162,7 +169,6 @@ a {
     background-color: #444;
     border-radius: 3px;
     overflow: hidden;
-    margin-top: 0.5rem;
 }
 #spotify-widget .spotify-progress-bar {
     height: 100%;
