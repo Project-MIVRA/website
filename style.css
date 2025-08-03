@@ -120,7 +120,8 @@ a {
     flex: 1;
     min-width: 0;
 }
-.spotify-song-info.is-scrolling {
+.spotify-title-container.is-scrolling,
+.spotify-artist.is-scrolling {
     -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
     mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
 }

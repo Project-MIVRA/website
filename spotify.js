@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     requestAnimationFrame(() => {
                         const songTitleElement = spotifyWidget.querySelector('.spotify-song-info h3');
                         const artistElement = spotifyWidget.querySelector('.spotify-artist');
-                        const songInfoContainer = spotifyWidget.querySelector('.spotify-song-info');
+                        const titleContainer = spotifyWidget.querySelector('.spotify-title-container');
 
                         const handleScrollingText = (container) => {
                             if (!container) return false;
@@ -166,14 +166,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         };
 
                         const isTitleScrolling = handleScrollingText(songTitleElement);
-                        const isArtistScrolling = handleScrollingText(artistElement);
+                        if (titleContainer) {
+                            titleContainer.classList.toggle('is-scrolling', isTitleScrolling);
+                        }
 
-                        if (songInfoContainer) {
-                            if (isTitleScrolling || isArtistScrolling) {
-                                songInfoContainer.classList.add('is-scrolling');
-                            } else {
-                                songInfoContainer.classList.remove('is-scrolling');
-                            }
+                        const isArtistScrolling = handleScrollingText(artistElement);
+                        if (artistElement) {
+                            artistElement.classList.toggle('is-scrolling', isArtistScrolling);
                         }
                     });
 
