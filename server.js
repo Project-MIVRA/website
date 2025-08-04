@@ -229,7 +229,7 @@ app.get('/api/steam/recently-played', async (req, res) => {
 app.get('/api/printers/status', async (req, res) => {
     try {
         const statuses = await Promise.all(printers.map(async (printer) => {
-            const url = `http://${printer.ip}:7125/printer/objects/query?print_stats&toolhead&heater_bed&display_status&virtual_sdcard`;
+            const url = `http://${printer.ip}:7125/printer/objects/query?print_stats&toolhead&heater_bed&extruder&display_status&virtual_sdcard`;
             try {
                 // node-fetch doesn't have a built-in timeout, so we use AbortController
                 const controller = new AbortController();

@@ -148,11 +148,19 @@
                         const data = printerStatus.data;
                         statusEl.textContent = data.print_stats.state.charAt(0).toUpperCase() + data.print_stats.state.slice(1);
                         
-                        const tool = data.toolhead;
-                        toolTempEl.textContent = `${tool.temperature.toFixed(1)}/${tool.target.toFixed(0)}`;
+                        const tool = data.extruder;
+                        if (tool && typeof tool.temperature === 'number' && typeof tool.target === 'number') {
+                            toolTempEl.textContent = `${tool.temperature.toFixed(1)}/${tool.target.toFixed(0)}`;
+                        } else {
+                            toolTempEl.textContent = '--/--';
+                        }
 
                         const bed = data.heater_bed;
-                        bedTempEl.textContent = `${bed.temperature.toFixed(1)}/${bed.target.toFixed(0)}`;
+                        if (bed && typeof bed.temperature === 'number' && typeof bed.target === 'number') {
+                            bedTempEl.textContent = `${bed.temperature.toFixed(1)}/${bed.target.toFixed(0)}`;
+                        } else {
+                            bedTempEl.textContent = '--/--';
+                        }
                         
                         let progress = 0;
                         if (data.print_stats.state === 'printing' && data.virtual_sdcard) {
