@@ -29,9 +29,9 @@ const STEAM_PLAYER_SUMMARY_ENDPOINT = `http://api.steampowered.com/ISteamUser/Ge
 
 // 3D Printers config
 const printers = [
-    { id: 1, name: 'Printer 1 (100.107.58.101)', ip: '100.107.58.101', camPath: '/webcam/?action=stream' },
-    { id: 2, name: 'Printer 2 (100.107.26.72)', ip: '100.107.26.72', camPath: '/webcam2/?action=stream' },
-    { id: 3, name: 'Printer 3 (100.107.235.80)', ip: '100.107.235.80', camPath: '/webcam/?action=stream' }
+    { id: 1, name: 'Neptune 4 Plus', ip: '100.107.58.101', camPath: '/webcam/?action=stream' },
+    { id: 2, name: 'SV06', ip: '100.107.26.72', camPath: '/webcam2/?action=stream' },
+    { id: 3, name: 'Ultimaker 3', ip: '100.107.235.80', camPath: '/webcam/?action=stream' }
 ];
 
 
