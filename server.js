@@ -6,6 +6,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
+const http = require('http');
 const fetch = require('node-fetch');
 
 // --- Configuration ---
@@ -254,7 +255,7 @@ app.get('/api/printers/status', async (req, res) => {
     }
 });
 
-app.get('/api/printers/:id/camera', async (req, res) => {
+app.get('/api/printers/:id/camera', (req, res) => {
     const printerId = parseInt(req.params.id, 10);
     const printer = printers.find(p => p.id === printerId);
 
@@ -262,18 +263,31 @@ app.get('/api/printers/:id/camera', async (req, res) => {
         return res.status(404).send('Printer not found');
     }
 
-    try {
-        const url = `http://${printer.ip}${printer.camPath}`;
-        const response = await fetch(url);
-        if (!response.ok) {
-            return res.status(response.status).send('Error fetching camera stream');
+    const options = {
+        hostname: printer.ip,
+        path: printer.camPath,
+        method: 'GET'
+    };
+
+    const proxyReq = http.request(options, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        proxyRes.pipe(res);
+    });
+
+    proxyReq.on('error', (e) => {
+        console.error(`Error proxying camera for printer ${printer.id}:`, e);
+        if (!res.headersSent) {
+            res.status(500).send('Error proxying camera stream');
+        } else {
+            res.end();
         }
-        res.setHeader('Content-Type', response.headers.get('content-type'));
-        response.body.pipe(res);
-    } catch (error) {
-        console.error(`Error proxying camera for printer ${printer.id}:`, error);
-        res.status(500).send('Error proxying camera stream');
-    }
+    });
+
+    req.on('close', () => {
+        proxyReq.abort();
+    });
+
+    proxyReq.end();
 });
 
 // --- Activity API Endpoints ---
