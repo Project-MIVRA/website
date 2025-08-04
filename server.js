@@ -27,6 +27,14 @@ const STEAM_RECENTLY_PLAYED_ENDPOINT = `http://api.steampowered.com/IPlayerServi
 const STEAM_PLAYER_SUMMARY_ENDPOINT = `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
 
 
+// 3D Printers config
+const printers = [
+    { id: 1, name: 'Printer 1 (100.107.58.101)', ip: '100.107.58.101', camPath: '/webcam/?action=stream' },
+    { id: 2, name: 'Printer 2 (100.107.26.72)', ip: '100.107.26.72', camPath: '/webcam2/?action=stream' },
+    { id: 3, name: 'Printer 3 (100.107.235.80)', ip: '100.107.235.80', camPath: '/webcam/?action=stream' }
+];
+
+
 // In-memory store for current activity
 let currentActivity = { text: 'Just chilling...' };
 
@@ -214,6 +222,57 @@ app.get('/api/steam/recently-played', async (req, res) => {
     } catch (error) {
         console.error('Error fetching from Steam Recently Played API:', error);
         res.status(500).json({ message: 'Internal server error while fetching from Steam.' });
+    }
+});
+
+// --- 3D Printer Endpoints ---
+app.get('/api/printers/status', async (req, res) => {
+    try {
+        const statuses = await Promise.all(printers.map(async (printer) => {
+            const url = `http://${printer.ip}:7125/printer/objects/query?print_stats&toolhead&heater_bed&display_status&virtual_sdcard`;
+            try {
+                // node-fetch doesn't have a built-in timeout, so we use AbortController
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    return { id: printer.id, name: printer.name, status: 'error', message: `Moonraker API returned ${response.status}` };
+                }
+                const data = await response.json();
+                return { id: printer.id, name: printer.name, status: 'ok', data: data.result.status };
+            } catch (error) {
+                return { id: printer.id, name: printer.name, status: 'error', message: error.name === 'AbortError' ? 'Request timed out' : error.message };
+            }
+        }));
+        res.json(statuses);
+    } catch (error) {
+        console.error('Error fetching printer statuses:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+app.get('/api/printers/:id/camera', async (req, res) => {
+    const printerId = parseInt(req.params.id, 10);
+    const printer = printers.find(p => p.id === printerId);
+
+    if (!printer) {
+        return res.status(404).send('Printer not found');
+    }
+
+    try {
+        const url = `http://${printer.ip}${printer.camPath}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            return res.status(response.status).send('Error fetching camera stream');
+        }
+        res.setHeader('Content-Type', response.headers.get('content-type'));
+        response.body.pipe(res);
+    } catch (error) {
+        console.error(`Error proxying camera for printer ${printer.id}:`, error);
+        res.status(500).send('Error proxying camera stream');
     }
 });
 

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Mini's Printers</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+    body {
+      background-color: #1a1a1a;
+      background-image: url('/Assets/Mini-background.avif');
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .printers-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        width: 100%;
+        margin-top: 20px;
+    }
+    .printer-box {
+        display: flex;
+        flex-direction: column;
+    }
+    .printer-box img {
+        width: 100%;
+        border-radius: 5px;
+        background-color: #000;
+        min-height: 200px; /* Prevents layout shift when cam is offline */
+    }
+    .printer-status {
+        margin-top: 15px;
+    }
+    .printer-status p {
+        margin: 5px 0;
+    }
+    .temp-info {
+        display: flex;
+        justify-content: space-between;
+    }
+    .progress-bar-container {
+        width: 100%;
+        height: 10px;
+        background-color: #444;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+    .progress-bar {
+        height: 100%;
+        background-color: #1DB954;
+        width: 0%;
+        transition: width 0.5s ease-out;
+    }
+    </style>
+    <meta name="description" content="Mini's 3D Printers Status">
+    <meta name="author" content="Mini">
+    <meta property="og:title" content="Mini's Printers" />
+    <meta property="og:description" content="Status page for my 3D printers." />
+    <meta property="og:image" content="https://mivra.net/Assets/Mini-1.png" />
+    <meta property="og:url" content="https://mivra.net/printers" />
+    <meta content="#43B581" data-react-helmet="true" name="theme-color" />
+    <meta property="og:site_name" content="Mini's Page - Mivra" />
+    <link rel="icon" href="../Assets/Mini-1.png">
+    <link rel="canonical" href="https://mivra.net/printers">
+</head>
+<body>
+    <div class="body-container">
+        <div class="main">
+            <div class="box" id="mainbox">
+                <h1>Mini's 3D Printers</h1>
+                <a href="/">← Back to main page</a>
+                <div id="printers-container" class="printers-container">
+                    <!-- Printer boxes will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const printers = [
+            { id: 1, name: 'Printer 1 (100.107.58.101)' },
+            { id: 2, name: 'Printer 2 (100.107.26.72)' },
+            { id: 3, name: 'Printer 3 (100.107.235.80)' }
+        ];
+
+        function createPrinterCard(printer) {
+            const card = document.createElement('div');
+            card.className = 'box printer-box';
+            card.id = `printer-${printer.id}`;
+            card.innerHTML = `
+                <h2>${printer.name}</h2>
+                <img src="/api/printers/${printer.id}/camera" alt="Camera feed for ${printer.name}" onerror="this.style.display='none'">
+                <div class="printer-status">
+                    <p><strong>Status:</strong> <span class="status">Loading...</span></p>
+                    <div class="temp-info">
+                        <span><strong>Tool:</strong> <span class="tool-temp">--/--</span>°C</span>
+                        <span><strong>Bed:</strong> <span class="bed-temp">--/--</span>°C</span>
+                    </div>
+                    <p><strong>Progress:</strong> <span class="progress-val">--</span>%</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <p style="margin-top: 10px;"><strong>Message:</strong> <span class="message"></span></p>
+                </div>
+            `;
+            return card;
+        }
+
+        function updatePrinterStatus() {
+            fetch('/api/printers/status')
+                .then(response => response.json())
+                .then(statuses => {
+                    statuses.forEach(printerStatus => {
+                        const card = document.getElementById(`printer-${printerStatus.id}`);
+                        if (!card) return;
+
+                        const statusEl = card.querySelector('.status');
+                        const toolTempEl = card.querySelector('.tool-temp');
+                        const bedTempEl = card.querySelector('.bed-temp');
+                        const progressValEl = card.querySelector('.progress-val');
+                        const progressBarEl = card.querySelector('.progress-bar');
+                        const messageEl = card.querySelector('.message');
+                        const imgEl = card.querySelector('img');
+
+                        if (printerStatus.status === 'error') {
+                            statusEl.textContent = 'Offline';
+                            toolTempEl.textContent = '--/--';
+                            bedTempEl.textContent = '--/--';
+                            progressValEl.textContent = '--';
+                            progressBarEl.style.width = '0%';
+                            messageEl.textContent = printerStatus.message;
+                            imgEl.style.display = 'none';
+                            return;
+                        }
+
+                        imgEl.style.display = 'block';
+
+                        const data = printerStatus.data;
+                        statusEl.textContent = data.print_stats.state.charAt(0).toUpperCase() + data.print_stats.state.slice(1);
+                        
+                        const tool = data.toolhead;
+                        toolTempEl.textContent = `${tool.temperature.toFixed(1)}/${tool.target.toFixed(0)}`;
+
+                        const bed = data.heater_bed;
+                        bedTempEl.textContent = `${bed.temperature.toFixed(1)}/${bed.target.toFixed(0)}`;
+                        
+                        let progress = 0;
+                        if (data.print_stats.state === 'printing' && data.virtual_sdcard) {
+                            progress = data.virtual_sdcard.progress * 100;
+                            progressValEl.textContent = progress.toFixed(1);
+                        } else {
+                            progressValEl.textContent = '--';
+                        }
+                        progressBarEl.style.width = `${progress}%`;
+
+                        messageEl.textContent = data.display_status ? data.display_status.message : '';
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching printer statuses:', error);
+                });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('printers-container');
+            printers.forEach(p => container.appendChild(createPrinterCard(p)));
+
+            updatePrinterStatus();
+            setInterval(updatePrinterStatus, 2500);
+        });
+    </script>
+</body>
+</html>
