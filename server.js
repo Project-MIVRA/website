@@ -243,7 +243,10 @@ app.get('/api/printers/status', async (req, res) => {
                     return { id: printer.id, name: printer.name, status: 'error', message: `Moonraker API returned ${response.status}` };
                 }
                 const data = await response.json();
-                return { id: printer.id, name: printer.name, status: 'ok', data: data.result.status };
+                if (data && data.result && data.result.status) {
+                    return { id: printer.id, name: printer.name, status: 'ok', data: data.result.status };
+                }
+                return { id: printer.id, name: printer.name, status: 'error', message: 'Invalid response from printer' };
             } catch (error) {
                 return { id: printer.id, name: printer.name, status: 'error', message: error.name === 'AbortError' ? 'Request timed out' : error.message };
             }
