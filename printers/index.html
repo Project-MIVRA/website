@@ -132,13 +132,13 @@
                         const messageEl = card.querySelector('.message');
                         const imgEl = card.querySelector('img');
 
-                        if (printerStatus.status === 'error') {
+                        if (printerStatus.status === 'error' || !printerStatus.data) {
                             statusEl.textContent = 'Offline';
                             toolTempEl.textContent = '--/--';
                             bedTempEl.textContent = '--/--';
                             progressValEl.textContent = '--';
                             progressBarEl.style.width = '0%';
-                            messageEl.textContent = printerStatus.message;
+                            messageEl.textContent = printerStatus.message || 'No data available';
                             imgEl.style.display = 'none';
                             return;
                         }
@@ -146,7 +146,11 @@
                         imgEl.style.display = 'block';
 
                         const data = printerStatus.data;
-                        statusEl.textContent = data.print_stats.state.charAt(0).toUpperCase() + data.print_stats.state.slice(1);
+                        if (data.print_stats && data.print_stats.state) {
+                            statusEl.textContent = data.print_stats.state.charAt(0).toUpperCase() + data.print_stats.state.slice(1);
+                        } else {
+                            statusEl.textContent = 'Unknown';
+                        }
                         
                         const tool = data.extruder;
                         if (tool && typeof tool.temperature === 'number' && typeof tool.target === 'number') {
@@ -163,7 +167,7 @@
                         }
                         
                         let progress = 0;
-                        if (data.print_stats.state === 'printing' && data.virtual_sdcard) {
+                        if (data.print_stats && data.print_stats.state === 'printing' && data.virtual_sdcard) {
                             progress = data.virtual_sdcard.progress * 100;
                             progressValEl.textContent = progress.toFixed(1);
                         } else {
