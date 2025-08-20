@@ -3,6 +3,7 @@
 // --- Dependencies ---
 require('dotenv').config();
 const express = require('express');
+const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
@@ -305,6 +306,46 @@ app.post('/api/activity', (req, res) => {
     }
     currentActivity = { text };
     res.status(200).json({ message: 'Activity updated successfully' });
+});
+
+// --- Suggestions API Endpoint ---
+app.post('/api/suggestions', async (req, res) => {
+    const { suggestion, name, contact } = req.body;
+
+    if (!suggestion) {
+        return res.status(400).json({ message: 'Suggestion text is required.' });
+    }
+
+    // Nodemailer transporter setup - using environment variables
+    // You must set these in your .env file
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: '"Suggestion Box" <responses@suggestions.mivra.net>', // sender address
+        to: 'mini@mivra.net', // list of receivers
+        subject: 'New Suggestion Received!', // Subject line
+        text: `You have received a new suggestion:\n\n${suggestion}\n\nFrom: ${name || 'Anonymous'}\nContact: ${contact || 'Not provided'}`, // plain text body
+        html: `<p>You have received a new suggestion:</p>
+               <blockquote style="border-left: 2px solid #ccc; padding-left: 1em; margin-left: 1em;">${suggestion.replace(/\n/g, '<br>')}</blockquote>
+               <p><strong>From:</strong> ${name || 'Anonymous'}</p>
+               <p><strong>Contact:</strong> ${contact || 'Not provided'}</p>`, // html body
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ message: 'Suggestion submitted successfully!' });
+    } catch (error) {
+        console.error('Error sending suggestion email:', error);
+        res.status(500).json({ message: 'Failed to send suggestion.' });
+    }
 });
 
 

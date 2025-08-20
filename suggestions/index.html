@@ -55,6 +55,29 @@
     #suggestion-form button:hover {
       background: #3367e1;
     }
+    #suggestion-form input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      background: black;
+      color: #fff;
+      border: 1px solid #3367e1;
+      border-radius: 10px;
+    }
+    #suggestion-form label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #response-message {
+        margin-top: 15px;
+        font-weight: bold;
+        text-align: center;
+    }
     </style>
     <meta name="description" content="A suggestion box for Mini's website.">
     <meta name="keywords" content="">
@@ -83,11 +106,63 @@
             <h1>Suggestion Box</h1>
             <p>Have an idea for something I should code, a project I should work on, or anything else? Let me know here!</p>
             <form id="suggestion-form">
-                <textarea id="suggestion-input" placeholder="Enter your suggestion here..." rows="5"></textarea>
+                <label for="suggestion-input">Suggestion (Required)</label>
+                <textarea id="suggestion-input" placeholder="Enter your suggestion here..." rows="5" required></textarea>
+                
+                <label for="name-input">Name (Optional)</label>
+                <input type="text" id="name-input" placeholder="Your name">
+
+                <label for="contact-input">Email/Discord (Optional)</label>
+                <input type="text" id="contact-input" placeholder="So I can reply">
+                
                 <button type="submit">Submit Suggestion</button>
             </form>
+            <div id="response-message"></div>
           </div>
         </div>
     </div>
+    <script>
+      const form = document.getElementById('suggestion-form');
+      const responseMessage = document.getElementById('response-message');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const suggestion = document.getElementById('suggestion-input').value;
+        const name = document.getElementById('name-input').value;
+        const contact = document.getElementById('contact-input').value;
+        const submitButton = form.querySelector('button');
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Submitting...';
+        responseMessage.textContent = '';
+
+        try {
+          const response = await fetch('/api/suggestions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ suggestion, name, contact }),
+          });
+
+          const responseData = await response.json();
+          if (response.ok) {
+            form.reset();
+            responseMessage.textContent = 'Thank you for your suggestion!';
+            responseMessage.style.color = '#1DB954';
+          } else {
+            responseMessage.textContent = `Error: ${responseData.message || 'Something went wrong.'}`;
+            responseMessage.style.color = '#f44336';
+          }
+        } catch (error) {
+          responseMessage.textContent = 'An unexpected error occurred. Please try again later.';
+          responseMessage.style.color = '#f44336';
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Submit Suggestion';
+        }
+      });
+    </script>
   </body>
 </html>
