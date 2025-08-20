@@ -329,7 +329,7 @@ app.post('/api/suggestions', async (req, res) => {
     });
 
     const mailOptions = {
-        from: '"Suggestion Box" <responses@suggestions.mivra.net>', // sender address
+        from: '"Suggestion Box" <responses@mivra.net>', // sender address
         to: 'mini@mivra.net', // list of receivers
         subject: 'New Suggestion Received!', // Subject line
         text: `You have received a new suggestion:\n\n${suggestion}\n\nFrom: ${name || 'Anonymous'}\nContact: ${contact || 'Not provided'}`, // plain text body
