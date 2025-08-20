@@ -332,7 +332,6 @@ app.post('/api/suggestions', async (req, res) => {
         from: '"Suggestion Box" <responses@mivra.net>', // sender address
         to: 'mini@mivra.net', // list of receivers
         subject: 'New Suggestion Received!', // Subject line
-        sender: process.env.SMTP_USER,
         text: `You have received a new suggestion:\n\n${suggestion}\n\nFrom: ${name || 'Anonymous'}\nContact: ${contact || 'Not provided'}`, // plain text body
         html: `<p>You have received a new suggestion:</p>
                <blockquote style="border-left: 2px solid #ccc; padding-left: 1em; margin-left: 1em;">${suggestion.replace(/\n/g, '<br>')}</blockquote>
