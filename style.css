@@ -22,6 +22,51 @@ a {
     margin-bottom: 20px;
 }
 
+.login-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.login-box {
+    padding: 10px 20px;
+    background-color: #000000a0;
+    border: 2px solid #3367e1;
+    border-radius: 10px;
+    color: #fff;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.login-box button {
+    background: none;
+    border: 1px solid #3367e1;
+    border-radius: 5px;
+    color: #fff;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+}
+
+.login-box button:hover {
+    background: #3367e133;
+}
+
+.profile-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #3367e1;
+}
+
 .body-container {
     display: flex;
     flex-wrap: wrap;
@@ -30,6 +75,7 @@ a {
     max-width: 1200px;
     gap: 20px;
     align-items: flex-start;
+    margin-top: 60px;
 }
 
 .main {
