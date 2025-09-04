@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const chatInput = document.getElementById('chat-input');
   const chatSend = document.getElementById('chat-send'); // Re-added the send button element
+  const chatModeSelect = document.getElementById('chat-mode');
 
   // --- Input History ---
   let messageHistory = [];
@@ -21,7 +22,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const msg = chatInput.value.trim();
     if (!msg || !socket || socket.readyState !== 1) return;
 
-    // --- Command Handling (Client-side) ---
+    if (chatModeSelect.value === 'discord') {
+      socket.send(msg);
+      appendMessage(`You: ${msg}`); // Echo message locally
+      chatInput.value = "";
+      // Add to history
+      if (messageHistory.length === 0 || messageHistory[messageHistory.length - 1] !== msg) {
+          messageHistory.push(msg);
+      }
+      historyIndex = messageHistory.length;
+      return;
+    }
+
+    // --- Command Handling (Client-side) for Global Chat ---
     if (msg.startsWith("/login ")) {
       const parts = msg.split(" ");
       if (parts[1]) {
@@ -38,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     historyIndex = messageHistory.length; // Reset history index
 
-    // Send chat message to WebSocket server
+    // Send chat message to WebSocket server for Global Chat
     socket.send(JSON.stringify({
       type: "chat",
       message: msg
@@ -68,7 +81,38 @@ document.addEventListener('DOMContentLoaded', () => {
   let reconnectDelay = 1000; // Initial delay 1 second
   let socket;
 
-  function connect() {
+  function connectDiscordBridge() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    socket = new WebSocket(`${protocol}//${host}`);
+
+    socket.onopen = () => {
+      console.log('Discord bridge WebSocket connection established');
+      appendMessage("🟢 Connected to Discord Bridge.", true);
+      reconnectDelay = 1000;
+    };
+
+    socket.onmessage = (event) => {
+      appendMessage(event.data);
+    };
+
+    socket.onclose = () => {
+      console.log('Discord bridge WebSocket closed. Reconnecting in', reconnectDelay, 'ms');
+      appendMessage("🔴 Disconnected from Discord bridge.", true);
+      setTimeout(() => {
+          reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
+          connectDiscordBridge(); // Reconnect to discord bridge
+      }, reconnectDelay);
+    };
+    
+    socket.onerror = (err) => {
+        console.error('Discord bridge WebSocket error:', err);
+        appendMessage("⚠️ Discord bridge WebSocket error.", true);
+        socket.close();
+    };
+  }
+
+  function connectGlobalChat() {
     // Establish connection to the WebSocket server
     socket = new WebSocket('wss://ws.khauni.coffee:2053');
 
@@ -169,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Attempt to reconnect with exponential backoff
       setTimeout(() => {
         reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
-        connect();
+        connectGlobalChat();
       }, reconnectDelay);
     };
 
@@ -180,7 +224,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  function connect() {
+    if (socket) {
+      socket.onclose = null; // Prevent automatic reconnection
+      socket.close();
+    }
+    chatContainer.innerHTML = ''; // Clear chat on mode switch
+    reconnectDelay = 1000; // Reset reconnect delay
+
+    if (chatModeSelect.value === 'global') {
+      connectGlobalChat();
+    } else {
+      connectDiscordBridge();
+    }
+  }
+
   // --- Event Listeners ---
+  chatModeSelect?.addEventListener('change', connect);
   chatSend?.addEventListener("click", sendMessage);
   chatInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
