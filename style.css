@@ -41,6 +41,146 @@ a {
     min-width: 320px;
 }
 
+/* --- Shared Page Styles (Wishlist/Gifs) --- */
+.page-background {
+    background-color: #1a1a1a;
+    background-image: url('/Assets/Mini-background.avif');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+/* --- Gif Page Upload Form --- */
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.form-group input {
+    background-color: #000;
+    border: 1px solid #3367e1;
+    border-radius: 5px;
+    padding: 10px;
+    color: #fff;
+    font-family: inherit;
+}
+
+.form-group input[type="file"] {
+    padding: 7px;
+}
+
+.upload-btn {
+    background-color: #3367e1;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+.upload-btn:hover {
+    background-color: #264bb0;
+}
+
+#uploadMessage {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+    min-height: 1.2em;
+}
+
+/* --- Gif Page Grid Layout --- */
+.gif-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 0;
+    margin: 0;
+}
+
+.gif-item {
+    background-color: #000000a0;
+    border: 2px solid #3367e1;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.gif-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(51, 103, 225, 0.3);
+}
+
+.gif-item a {
+    text-decoration: none;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.gif-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    background-color: #000;
+    display: block;
+}
+
+.item-info {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: transparent;
+    color: #fff;
+    text-align: center;
+    border-top: 1px solid #3367e1;
+}
+
+.item-title {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: #fff;
+    word-break: break-all;
+}
+
+@media (max-width: 600px) {
+    .gif-grid {
+        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+/* --- Existing Widgets --- */
 /* Clock Widget */
 #clock-widget {
     text-align: center;

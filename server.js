@@ -5,20 +5,39 @@ require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const http = require('http');
 const fetch = require('node-fetch');
+const multer = require('multer');
+const sharp = require('sharp');
+const ffmpeg = require('fluent-ffmpeg');
+const ffmpegPath = require('ffmpeg-static');
+
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 // --- Configuration ---
 const PORT = process.env.PORT || 3000;
 const DATA_FILE_PATH = path.join(__dirname, 'wishlist', 'wishlist-data.json');
+const GIFS_DIR = path.join(__dirname, 'gifs');
+const TEMP_DIR = path.join(__dirname, 'temp_uploads');
 
-// Environment and Base URL from .env
-const { NODE_ENV, BASE_URL, STEAM_API_KEY, STEAM_USER_ID } = process.env;
+(async () => {
+    try {
+        await fs.mkdir(GIFS_DIR, { recursive: true });
+        await fs.mkdir(TEMP_DIR, { recursive: true });
+    } catch (e) { console.error("Error creating directories", e); }
+})();
+
+// Environment
+const { 
+    NODE_ENV, BASE_URL, STEAM_API_KEY, STEAM_USER_ID,
+    SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN,
+    GIF_UPLOAD_PASSWORD
+} = process.env;
 
 // Spotify Credentials
-const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = process.env;
 const SPOTIFY_REDIRECT_URI = `${BASE_URL}/auth/callback`;
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
@@ -28,7 +47,6 @@ const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`;
 const STEAM_RECENTLY_PLAYED_ENDPOINT = `http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/`;
 const STEAM_PLAYER_SUMMARY_ENDPOINT = `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
 
-
 // 3D Printers config
 const printers = [
     { id: 1, name: 'Neptune 4 Plus', ip: '100.107.58.101', camPath: '/webcam/?action=stream' },
@@ -36,9 +54,10 @@ const printers = [
     { id: 3, name: 'Ultimaker 3', ip: '100.107.235.80', camPath: '/webcam/?action=stream' }
 ];
 
+let currentActivity = { text: 'Meowing' };
 
-// In-memory store for current activity
-let currentActivity = { text: 'Just chilling...' };
+// Multer Config (Uploads)
+const upload = multer({ dest: TEMP_DIR });
 
 const app = express();
 
@@ -75,6 +94,7 @@ function generateUniqueId() {
 }
 
 const getSpotifyAccessToken = async () => {
+    // Note: Updated URLs to actual Spotify endpoints in constants above
     const response = await fetch(TOKEN_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -90,10 +110,83 @@ const getSpotifyAccessToken = async () => {
     return data.access_token;
 };
 
-// --- API Endpoints ---
+// --- GIF & UPLOAD LOGIC ---
+
+// GET /api/gifs - List all gifs
+app.get('/api/gifs', async (req, res) => {
+    try {
+        const files = await fs.readdir(GIFS_DIR);
+        const gifs = files.filter(f => f.toLowerCase().endsWith('.gif'));
+        res.json(gifs);
+    } catch (error) {
+        console.error("Error reading gifs directory:", error);
+        res.status(500).json({ message: "Error listing gifs" });
+    }
+});
+
+// POST /api/gifs - Upload and convert
+app.post('/api/gifs', upload.single('file'), async (req, res) => {
+    const tempPath = req.file ? req.file.path : null;
+    
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+        
+        const { password, filename } = req.body;
+
+        if (password !== GIF_UPLOAD_PASSWORD) {
+            if (tempPath) await fs.unlink(tempPath);
+            return res.status(403).json({ message: 'Invalid upload code.' });
+        }
+
+        let finalName = filename ? filename.trim() : req.file.originalname.replace(/\.[^/.]+$/, "");
+        finalName = finalName.replace(/[^a-z0-9\-_]/gi, '_');
+        if (!finalName.toLowerCase().endsWith('.gif')) finalName += '.gif';
+
+        const finalPath = path.join(GIFS_DIR, finalName);
+
+        try {
+            await fs.access(finalPath);
+            if (tempPath) await fs.unlink(tempPath);
+            return res.status(409).json({ message: 'Filename already in use. Please choose another.' });
+        } catch (e) {
+        }
+
+        const mime = req.file.mimetype;
+
+        if (mime.startsWith('image/')) {
+            await sharp(tempPath, { animated: true })
+                .toFormat('gif')
+                .toFile(finalPath);
+            
+        } else if (mime.startsWith('video/')) {
+            await new Promise((resolve, reject) => {
+                ffmpeg(tempPath)
+                    .outputOption('-vf', 'fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse')
+                    .toFormat('gif')
+                    .save(finalPath)
+                    .on('end', resolve)
+                    .on('error', reject);
+            });
+        } else {
+            if (tempPath) await fs.unlink(tempPath);
+            return res.status(400).json({ message: 'Unsupported file type. Use Image or Video.' });
+        }
+
+        await fs.unlink(tempPath);
+        
+        res.json({ message: 'File uploaded and converted successfully!', filename: finalName });
+
+    } catch (error) {
+        console.error("Upload error:", error);
+        if (tempPath) {
+            try { await fs.unlink(tempPath); } catch (e) {}
+        }
+        res.status(500).json({ message: 'Server error during processing.' });
+    }
+});
+
 
 // --- Wishlist API Endpoints ---
-// GET all wishlist items
 app.get('/api/wishlist', async (req, res) => {
     try {
         const items = await readWishlistData();
@@ -103,13 +196,11 @@ app.get('/api/wishlist', async (req, res) => {
     }
 });
 
-// ADD a new wishlist item
 app.post('/api/wishlist', async (req, res) => {
     try {
         const { name, description, price, link, imageUrl } = req.body;
-        if (!name) {
-            return res.status(400).json({ message: 'Item name is required.' });
-        }
+        if (!name) return res.status(400).json({ message: 'Item name is required.' });
+        
         const items = await readWishlistData();
         const newItem = { id: generateUniqueId(), name, description: description || '', price: price || '', link: link || '', imageUrl: imageUrl || '', purchased: false, addedAt: new Date().toISOString() };
         items.push(newItem);
@@ -120,18 +211,14 @@ app.post('/api/wishlist', async (req, res) => {
     }
 });
 
-// UPDATE a wishlist item
 app.put('/api/wishlist/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, price, link, imageUrl, purchased } = req.body;
         let items = await readWishlistData();
         const itemIndex = items.findIndex(item => item.id === id);
-        if (itemIndex === -1) {
-            return res.status(404).json({ message: 'Item not found.' });
-        }
+        if (itemIndex === -1) return res.status(404).json({ message: 'Item not found.' });
 
-        // Update fields that are provided in the request body
         const updatedItem = { ...items[itemIndex] };
         if (name !== undefined) updatedItem.name = name;
         if (description !== undefined) updatedItem.description = description;
@@ -141,7 +228,6 @@ app.put('/api/wishlist/:id', async (req, res) => {
         if (purchased !== undefined) updatedItem.purchased = purchased;
         
         items[itemIndex] = updatedItem;
-
         await writeWishlistData(items);
         res.json(updatedItem);
     } catch (error) {
@@ -150,15 +236,12 @@ app.put('/api/wishlist/:id', async (req, res) => {
     }
 });
 
-// DELETE a wishlist item
 app.delete('/api/wishlist/:id', async (req, res) => {
     try {
         const { id } = req.params;
         let items = await readWishlistData();
         const filteredItems = items.filter(item => item.id !== id);
-        if (items.length === filteredItems.length) {
-            return res.status(404).json({ message: 'Item not found.' });
-        }
+        if (items.length === filteredItems.length) return res.status(404).json({ message: 'Item not found.' });
         await writeWishlistData(filteredItems);
         res.status(204).send();
     } catch (error) {
@@ -198,32 +281,28 @@ app.get('/api/spotify/devices', async (req, res) => {
 
 // --- Steam API Endpoints ---
 app.get('/api/steam/player-summary', async (req, res) => {
-    if (!STEAM_API_KEY || !STEAM_USER_ID) {
-        return res.status(500).json({ message: 'Steam API Key or User ID is not configured on the server.' });
-    }
+    if (!STEAM_API_KEY || !STEAM_USER_ID) return res.status(500).json({ message: 'Steam config missing.' });
     try {
         const url = `${STEAM_PLAYER_SUMMARY_ENDPOINT}?key=${STEAM_API_KEY}&steamids=${STEAM_USER_ID}`;
         const response = await fetch(url);
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        console.error('Error fetching from Steam Player Summary API:', error);
-        res.status(500).json({ message: 'Internal server error while fetching from Steam.' });
+        console.error('Error fetching from Steam:', error);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 });
 
 app.get('/api/steam/recently-played', async (req, res) => {
-    if (!STEAM_API_KEY || !STEAM_USER_ID) {
-        return res.status(500).json({ message: 'Steam API Key or User ID is not configured on the server.' });
-    }
+    if (!STEAM_API_KEY || !STEAM_USER_ID) return res.status(500).json({ message: 'Steam config missing.' });
     try {
         const url = `${STEAM_RECENTLY_PLAYED_ENDPOINT}?key=${STEAM_API_KEY}&steamid=${STEAM_USER_ID}&format=json`;
         const response = await fetch(url);
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        console.error('Error fetching from Steam Recently Played API:', error);
-        res.status(500).json({ message: 'Internal server error while fetching from Steam.' });
+        console.error('Error fetching from Steam:', error);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 });
 
@@ -233,23 +312,17 @@ app.get('/api/printers/status', async (req, res) => {
         const statuses = await Promise.all(printers.map(async (printer) => {
             const url = `http://${printer.ip}:7125/printer/objects/query?print_stats&toolhead&heater_bed&extruder&display_status&virtual_sdcard`;
             try {
-                // node-fetch doesn't have a built-in timeout, so we use AbortController
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
-
                 const response = await fetch(url, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (!response.ok) {
-                    return { id: printer.id, name: printer.name, status: 'error', message: `Moonraker API returned ${response.status}` };
-                }
+                if (!response.ok) return { id: printer.id, name: printer.name, status: 'error', message: `API ${response.status}` };
                 const data = await response.json();
-                if (data && data.result && data.result.status) {
-                    return { id: printer.id, name: printer.name, status: 'ok', data: data.result.status };
-                }
-                return { id: printer.id, name: printer.name, status: 'error', message: 'Invalid response from printer' };
+                if (data?.result?.status) return { id: printer.id, name: printer.name, status: 'ok', data: data.result.status };
+                return { id: printer.id, name: printer.name, status: 'error', message: 'Invalid response' };
             } catch (error) {
-                return { id: printer.id, name: printer.name, status: 'error', message: error.name === 'AbortError' ? 'Request timed out' : error.message };
+                return { id: printer.id, name: printer.name, status: 'error', message: error.name === 'AbortError' ? 'Timeout' : error.message };
             }
         }));
         res.json(statuses);
@@ -262,92 +335,61 @@ app.get('/api/printers/status', async (req, res) => {
 app.get('/api/printers/:id/camera', (req, res) => {
     const printerId = parseInt(req.params.id, 10);
     const printer = printers.find(p => p.id === printerId);
+    if (!printer) return res.status(404).send('Printer not found');
 
-    if (!printer) {
-        return res.status(404).send('Printer not found');
-    }
-
-    const options = {
-        hostname: printer.ip,
-        path: printer.camPath,
-        method: 'GET'
-    };
-
+    const options = { hostname: printer.ip, path: printer.camPath, method: 'GET' };
     const proxyReq = http.request(options, (proxyRes) => {
         res.writeHead(proxyRes.statusCode, proxyRes.headers);
         proxyRes.pipe(res);
     });
-
     proxyReq.on('error', (e) => {
-        console.error(`Error proxying camera for printer ${printer.id}:`, e);
-        if (!res.headersSent) {
-            res.status(500).send('Error proxying camera stream');
-        } else {
-            res.end();
-        }
+        console.error(`Camera proxy error ${printer.id}:`, e);
+        if (!res.headersSent) res.status(500).send('Error proxying stream');
     });
-
-    req.on('close', () => {
-        proxyReq.abort();
-    });
-
+    req.on('close', () => proxyReq.abort());
     proxyReq.end();
 });
 
 // --- Activity API Endpoints ---
-app.get('/api/activity', (req, res) => {
-    res.json(currentActivity);
-});
-
+app.get('/api/activity', (req, res) => res.json(currentActivity));
 app.post('/api/activity', (req, res) => {
     const { text } = req.body;
-    if (!text || typeof text !== 'string') {
-        return res.status(400).json({ message: 'Activity text is required and must be a string.' });
-    }
+    if (!text || typeof text !== 'string') return res.status(400).json({ message: 'Text required.' });
     currentActivity = { text };
-    res.status(200).json({ message: 'Activity updated successfully' });
+    res.status(200).json({ message: 'Activity updated' });
 });
 
 // --- Suggestions API Endpoint ---
 app.post('/api/suggestions', async (req, res) => {
     const { suggestion, name, contact } = req.body;
+    if (!suggestion) return res.status(400).json({ message: 'Suggestion text is required.' });
 
-    if (!suggestion) {
-        return res.status(400).json({ message: 'Suggestion text is required.' });
-    }
-
-    // Nodemailer transporter setup - using environment variables
-    // You must set these in your .env file
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
-        secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
+        secure: process.env.SMTP_PORT == 465,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
 
     const mailOptions = {
-        from: '"Suggestion Box" <responses@mivra.net>', // sender address
-        to: 'mini@mivra.net', // list of receivers
-        subject: 'New Suggestion Received!', // Subject line
-        text: `You have received a new suggestion:\n\n${suggestion}\n\nFrom: ${name || 'Anonymous'}\nContact: ${contact || 'Not provided'}`, // plain text body
-        html: `<p>You have received a new suggestion:</p>
-               <blockquote style="border-left: 2px solid #ccc; padding-left: 1em; margin-left: 1em;">${suggestion.replace(/\n/g, '<br>')}</blockquote>
+        from: '"Suggestion Box" <responses@mivra.net>',
+        to: 'mini@mivra.net',
+        subject: 'New Suggestion Received!',
+        text: `Suggestion:\n\n${suggestion}\n\nFrom: ${name || 'Anonymous'}\nContact: ${contact || 'Not provided'}`,
+        html: `<p>New suggestion:</p>
+               <blockquote style="border-left: 2px solid #ccc; padding-left: 1em;">${suggestion.replace(/\n/g, '<br>')}</blockquote>
                <p><strong>From:</strong> ${name || 'Anonymous'}</p>
-               <p><strong>Contact:</strong> ${contact || 'Not provided'}</p>`, // html body
+               <p><strong>Contact:</strong> ${contact || 'Not provided'}</p>`,
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: 'Suggestion submitted successfully!' });
+        res.status(200).json({ message: 'Suggestion submitted!' });
     } catch (error) {
-        console.error('Error sending suggestion email:', error);
+        console.error('Error sending email:', error);
         res.status(500).json({ message: 'Failed to send suggestion.' });
     }
 });
-
 
 // --- Spotify Authentication Flow ---
 app.get('/auth/login', (req, res) => {
@@ -364,7 +406,7 @@ app.get('/auth/login', (req, res) => {
 app.get('/auth/callback', async (req, res) => {
     const code = req.query.code || null;
     try {
-        const response = await fetch('https://accounts.spotify.com/api/token', {
+        const response = await fetch(TOKEN_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Authorization': 'Basic ' + (Buffer.from(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).toString('base64')),
@@ -378,7 +420,7 @@ app.get('/auth/callback', async (req, res) => {
         });
         const data = await response.json();
         const { access_token, refresh_token } = data;
-        res.send(`<h1>Authentication Successful!</h1><p>Your NEW Refresh Token is:</p><pre>${refresh_token}</pre><p>Copy this token and add it to your <code>.env</code> file.</p>`);
+        res.send(`<h1>Authentication Successful!</h1><p>Your Refresh Token:</p><pre>${refresh_token}</pre>`);
     } catch (error) {
         console.error('Error during auth callback:', error);
         res.status(500).send("Error getting refresh token.");
@@ -391,5 +433,4 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 // --- Start Server ---
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
-    console.log(`To get your Spotify Refresh Token, visit: ${BASE_URL}/auth/login`);
 });
