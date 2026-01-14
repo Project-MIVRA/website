@@ -210,6 +210,46 @@ a {
     color: #ccc;
 }
 
+/* Art of the Month Widget */
+#art-widget h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: white;
+    text-align: center;
+}
+#art-widget .art-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+#art-widget .art-image {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    object-fit: cover;
+}
+#art-widget .art-info {
+    text-align: center;
+    font-size: 0.9em;
+    color: #ccc;
+}
+#art-widget .art-info strong {
+    color: #fff;
+    display: block;
+    margin-bottom: 3px;
+    font-size: 1.1em;
+}
+#art-widget .art-info a {
+    color: #3367e1;
+    font-weight: bold;
+}
+#art-widget .art-info a:hover {
+    text-decoration: underline;
+}
+
+
 /* Steam Widget */
 #steam-widget h2 {
     font-size: 1.5em;

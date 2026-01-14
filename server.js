@@ -20,12 +20,15 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 // --- Configuration ---
 const PORT = process.env.PORT || 3000;
 const DATA_FILE_PATH = path.join(__dirname, 'wishlist', 'wishlist-data.json');
+const ART_DATA_FILE_PATH = path.join(__dirname, 'art', 'art-data.json');
 const GIFS_DIR = path.join(__dirname, 'gifs');
+const ART_DIR = path.join(__dirname, 'art');
 const TEMP_DIR = path.join(__dirname, 'temp_uploads');
 
 (async () => {
     try {
         await fs.mkdir(GIFS_DIR, { recursive: true });
+        await fs.mkdir(ART_DIR, { recursive: true });
         await fs.mkdir(TEMP_DIR, { recursive: true });
     } catch (e) { console.error("Error creating directories", e); }
 })();
@@ -65,6 +68,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 app.use('/wishlist', express.static(path.join(__dirname, 'wishlist')));
+app.use('/art', express.static(path.join(__dirname, 'art'))); // Serve art folder
 
 // --- Helper Functions ---
 async function readWishlistData() {
@@ -86,6 +90,28 @@ async function writeWishlistData(items) {
     } catch (error) {
         console.error('Error writing wishlist data file:', error);
         throw new Error('Failed to save wishlist data.');
+    }
+}
+
+async function readArtData() {
+    try {
+        await fs.access(ART_DATA_FILE_PATH);
+        const data = await fs.readFile(ART_DATA_FILE_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        if (error.code === 'ENOENT') return {}; // Return empty object if no data yet
+        console.error('Error reading art data file:', error);
+        return {};
+    }
+}
+
+async function writeArtData(data) {
+    try {
+        await fs.mkdir(path.dirname(ART_DATA_FILE_PATH), { recursive: true });
+        await fs.writeFile(ART_DATA_FILE_PATH, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error('Error writing art data file:', error);
+        throw new Error('Failed to save art data.');
     }
 }
 
@@ -182,6 +208,65 @@ app.post('/api/gifs', upload.single('file'), async (req, res) => {
             try { await fs.unlink(tempPath); } catch (e) {}
         }
         res.status(500).json({ message: 'Server error during processing.' });
+    }
+});
+
+// --- ART OF THE MONTH API ---
+
+// GET /api/art - Get current art info
+app.get('/api/art', async (req, res) => {
+    try {
+        const artData = await readArtData();
+        res.json(artData);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch art data." });
+    }
+});
+
+// POST /api/art - Update art of the month (Upload image or set link)
+app.post('/api/art', upload.single('image'), async (req, res) => {
+    const tempPath = req.file ? req.file.path : null;
+
+    try {
+        const { password, artistName, artistLink, description, imageUrl } = req.body;
+
+        if (password !== GIF_UPLOAD_PASSWORD) { // Reuse existing password for simplicity
+             if (tempPath) await fs.unlink(tempPath);
+             return res.status(403).json({ message: 'Invalid upload code.' });
+        }
+
+        let currentData = await readArtData();
+        let newImageUrl = imageUrl || currentData.imageUrl;
+
+        // If a new file is uploaded, process it
+        if (req.file) {
+            const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+            const filename = `art_month_${Date.now()}${ext}`;
+            const finalPath = path.join(ART_DIR, filename);
+
+            // Move file to art directory
+            await fs.rename(tempPath, finalPath);
+            newImageUrl = `/art/${filename}`;
+        } else if (tempPath) {
+             await fs.unlink(tempPath); // Clean up if file existed but not used (edge case)
+        }
+
+        const updatedData = {
+            imageUrl: newImageUrl,
+            artistName: artistName || currentData.artistName,
+            artistLink: artistLink || currentData.artistLink,
+            description: description || currentData.description
+        };
+
+        await writeArtData(updatedData);
+        res.json({ message: 'Art of the month updated successfully!', data: updatedData });
+
+    } catch (error) {
+        console.error("Art upload error:", error);
+        if (tempPath) {
+            try { await fs.unlink(tempPath); } catch (e) {}
+        }
+        res.status(500).json({ message: 'Server error updating art.' });
     }
 });
 
