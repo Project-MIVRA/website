@@ -8,3 +8,4 @@ yarn-error.log
 .aider*
 /wishlist/wishlist-data.json
 art/art-data.json
+/.vs
