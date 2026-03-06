@@ -518,7 +518,7 @@ app.get('/auth/callback', async (req, res) => {
             })
         });
         const data = await response.json();
-        const { access_token, refresh_token } = data;
+        const { refresh_token } = data;
         res.send(`<h1>Authentication Successful!</h1><p>Your Refresh Token:</p><pre>${refresh_token}</pre>`);
     } catch (error) {
         console.error('Error during auth callback:', error);
