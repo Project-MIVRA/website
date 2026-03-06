@@ -74,6 +74,30 @@ const upload = multer({ dest: TEMP_DIR });
 
 const app = express();
 
+const rateLimit = require('express-rate-limit');
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+    message: { message: 'Too many requests from this IP, please try again after 15 minutes.' },
+    standardHeaders: true, 
+    legacyHeaders: false, 
+});
+
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 60,
+    message: { message: 'Upload limit reached. Please try again later.' }
+});
+
+const suggestionLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { message: 'Too many suggestions submitted. Please try again later.' }
+});
+
+app.use('/api', apiLimiter);
+
 // --- Middleware ---
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
@@ -223,6 +247,18 @@ app.post('/api/gifs', upload.single('file'), async (req, res) => {
 
 // --- ART OF THE MONTH API ---
 
+// Helper to ensure temporary upload paths stay within the art directory
+function getSafeTempPath(tempPath) {
+    if (!tempPath) return null;
+    // Only operate on the basename to avoid any directory traversal
+    const fileName = path.basename(tempPath);
+    const resolved = path.resolve(ART_DIR, fileName);
+    if (!resolved.startsWith(path.resolve(ART_DIR) + path.sep)) {
+        return null;
+    }
+    return resolved;
+}
+
 // GET /api/art - Get current art info
 app.get('/api/art', async (req, res) => {
     try {
@@ -235,13 +271,13 @@ app.get('/api/art', async (req, res) => {
 
 // POST /api/art - Update art of the month (Upload image or set link)
 app.post('/api/art', upload.single('image'), async (req, res) => {
-    const tempPath = req.file ? req.file.path : null;
+    const safeTempPath = req.file ? getSafeTempPath(req.file.path) : null;
 
     try {
         const { password, artistName, artistLink, description, imageUrl } = req.body;
 
         if (password !== GIF_UPLOAD_PASSWORD) { // Reuse existing password for simplicity
-             if (tempPath) await fs.unlink(tempPath);
+             if (safeTempPath) await fs.unlink(safeTempPath);
              return res.status(403).json({ message: 'Invalid upload code.' });
         }
 
@@ -249,16 +285,16 @@ app.post('/api/art', upload.single('image'), async (req, res) => {
         let newImageUrl = imageUrl || currentData.imageUrl;
 
         // If a new file is uploaded, process it
-        if (req.file) {
+        if (req.file && safeTempPath) {
             const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
             const filename = `art_month_${Date.now()}${ext}`;
             const finalPath = path.join(ART_DIR, filename);
 
             // Move file to art directory
-            await fs.rename(tempPath, finalPath);
+            await fs.rename(safeTempPath, finalPath);
             newImageUrl = `/art/${filename}`;
-        } else if (tempPath) {
-             await fs.unlink(tempPath); // Clean up if file existed but not used (edge case)
+        } else if (safeTempPath) {
+             await fs.unlink(safeTempPath); // Clean up if file existed but not used (edge case)
         }
 
         const updatedData = {
@@ -273,8 +309,8 @@ app.post('/api/art', upload.single('image'), async (req, res) => {
 
     } catch (error) {
         console.error("Art upload error:", error);
-        if (tempPath) {
-            try { await fs.unlink(tempPath); } catch (e) {}
+        if (safeTempPath) {
+            try { await fs.unlink(safeTempPath); } catch (e) {}
         }
         res.status(500).json({ message: 'Server error updating art.' });
     }
