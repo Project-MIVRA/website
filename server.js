@@ -13,6 +13,17 @@ const fetch = require('node-fetch');
 const multer = require('multer');
 const sharp = require('sharp');
 const ffmpeg = require('fluent-ffmpeg');
+
+// Simple HTML escaping to prevent HTML injection in generated content (e.g., emails)
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 const ffmpegPath = require('ffmpeg-static');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -456,15 +467,19 @@ app.post('/api/suggestions', async (req, res) => {
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
 
+    const safeSuggestionHtml = escapeHtml(suggestion);
+    const safeNameHtml = name ? escapeHtml(name) : 'Anonymous';
+    const safeContactHtml = contact ? escapeHtml(contact) : 'Not provided';
+
     const mailOptions = {
         from: '"Suggestion Box" <responses@mivra.net>',
         to: 'mini@mivra.net',
         subject: 'New Suggestion Received!',
         text: `Suggestion:\n\n${suggestion}\n\nFrom: ${name || 'Anonymous'}\nContact: ${contact || 'Not provided'}`,
         html: `<p>New suggestion:</p>
-               <blockquote style="border-left: 2px solid #ccc; padding-left: 1em;">${suggestion.replace(/\n/g, '<br>')}</blockquote>
-               <p><strong>From:</strong> ${name || 'Anonymous'}</p>
-               <p><strong>Contact:</strong> ${contact || 'Not provided'}</p>`,
+               <blockquote style="border-left: 2px solid #ccc; padding-left: 1em;">${safeSuggestionHtml.replace(/\n/g, '<br>')}</blockquote>
+               <p><strong>From:</strong> ${safeNameHtml}</p>
+               <p><strong>Contact:</strong> ${safeContactHtml}</p>`,
     };
 
     try {
