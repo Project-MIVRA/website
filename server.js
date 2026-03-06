@@ -253,7 +253,9 @@ function getSafeTempPath(tempPath) {
     // Only operate on the basename to avoid any directory traversal
     const fileName = path.basename(tempPath);
     const resolved = path.resolve(ART_DIR, fileName);
-    if (!resolved.startsWith(path.resolve(ART_DIR) + path.sep)) {
+    const base = path.resolve(ART_DIR);
+    const relative = path.relative(base, resolved);
+    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
         return null;
     }
     return resolved;
