@@ -57,8 +57,8 @@ const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-pla
 const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`;
 
 // Steam Endpoints
-const STEAM_RECENTLY_PLAYED_ENDPOINT = `http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/`;
-const STEAM_PLAYER_SUMMARY_ENDPOINT = `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
+const STEAM_RECENTLY_PLAYED_ENDPOINT = `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/`;
+const STEAM_PLAYER_SUMMARY_ENDPOINT = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
 
 // 3D Printers config
 const printers = [
@@ -253,10 +253,51 @@ function getSafeTempPath(tempPath) {
     // Only operate on the basename to avoid any directory traversal
     const fileName = path.basename(tempPath);
     const resolved = path.resolve(ART_DIR, fileName);
-    if (!resolved.startsWith(path.resolve(ART_DIR) + path.sep)) {
+    const base = path.resolve(ART_DIR);
+    const relative = path.relative(base, resolved);
+    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
         return null;
     }
     return resolved;
+}
+
+/**
+ * Sanitize generic text input for art metadata.
+ * - Coerces to string
+ * - Trims whitespace
+ * - Truncates to a maximum length
+ * - Escapes HTML to avoid injection when rendered
+ */
+function sanitizeArtField(value, maxLength) {
+    if (!value) return undefined;
+    let str = String(value).trim();
+    if (!str) return undefined;
+    if (typeof maxLength === 'number' && maxLength > 0 && str.length > maxLength) {
+        str = str.slice(0, maxLength);
+    }
+    // escapeHtml is defined elsewhere in this file and used for email content.
+    return escapeHtml(str);
+}
+
+/**
+ * Sanitize artist link:
+ * - Validates URL
+ * - Allows only http/https
+ * - Applies generic field sanitization and length limits
+ */
+function sanitizeArtLink(value, maxLength) {
+    const sanitized = sanitizeArtField(value, maxLength);
+    if (!sanitized) return undefined;
+    try {
+        const url = new URL(sanitized);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            return undefined;
+        }
+        return url.toString();
+    } catch (e) {
+        // Invalid URL; drop it rather than storing unsafe content
+        return undefined;
+    }
 }
 
 // GET /api/art - Get current art info
@@ -284,6 +325,11 @@ app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => 
         let currentData = await readArtData();
         let newImageUrl = imageUrl || currentData.imageUrl;
 
+        // Sanitize text fields before storing or rendering
+        const cleanArtistName = sanitizeArtField(artistName, 100);
+        const cleanDescription = sanitizeArtField(description, 1000);
+        const cleanArtistLink = sanitizeArtLink(artistLink, 300);
+
         // If a new file is uploaded, process it
         if (req.file && safeTempPath) {
             const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
@@ -299,9 +345,9 @@ app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => 
 
         const updatedData = {
             imageUrl: newImageUrl,
-            artistName: artistName || currentData.artistName,
-            artistLink: artistLink || currentData.artistLink,
-            description: description || currentData.description
+            artistName: cleanArtistName || currentData.artistName,
+            artistLink: cleanArtistLink || currentData.artistLink,
+            description: cleanDescription || currentData.description
         };
 
         await writeArtData(updatedData);
@@ -498,7 +544,7 @@ app.post('/api/suggestions', suggestionLimiter, async (req, res) => {
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
-        secure: process.env.SMTP_PORT == 465,
+        secure: Number(process.env.SMTP_PORT) === 465,
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
 
