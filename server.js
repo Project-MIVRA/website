@@ -185,7 +185,7 @@ app.get('/api/gifs', async (req, res) => {
 });
 
 // POST /api/gifs - Upload and convert
-app.post('/api/gifs', upload.single('file'), async (req, res) => {
+app.post('/api/gifs', uploadLimiter, upload.single('file'), async (req, res) => {
     const tempPath = req.file ? req.file.path : null;
     
     try {
@@ -270,7 +270,7 @@ app.get('/api/art', async (req, res) => {
 });
 
 // POST /api/art - Update art of the month (Upload image or set link)
-app.post('/api/art', upload.single('image'), async (req, res) => {
+app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => {
     const safeTempPath = req.file ? getSafeTempPath(req.file.path) : null;
 
     try {
@@ -491,7 +491,7 @@ app.post('/api/activity', (req, res) => {
 });
 
 // --- Suggestions API Endpoint ---
-app.post('/api/suggestions', async (req, res) => {
+app.post('/api/suggestions', suggestionLimiter, async (req, res) => {
     const { suggestion, name, contact } = req.body;
     if (!suggestion) return res.status(400).json({ message: 'Suggestion text is required.' });
 
