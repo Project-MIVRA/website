@@ -57,8 +57,8 @@ const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-pla
 const DEVICES_ENDPOINT = `https://api.spotify.com/v1/me/player/devices`;
 
 // Steam Endpoints
-const STEAM_RECENTLY_PLAYED_ENDPOINT = `http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/`;
-const STEAM_PLAYER_SUMMARY_ENDPOINT = `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
+const STEAM_RECENTLY_PLAYED_ENDPOINT = `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/`;
+const STEAM_PLAYER_SUMMARY_ENDPOINT = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/`;
 
 // 3D Printers config
 const printers = [
