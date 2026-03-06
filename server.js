@@ -5,7 +5,6 @@ require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
-const fsSync = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const http = require('http');
