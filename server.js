@@ -131,7 +131,12 @@ async function readArtData() {
     try {
         await fs.access(ART_DATA_FILE_PATH);
         const data = await fs.readFile(ART_DATA_FILE_PATH, 'utf8');
-        return JSON.parse(data);
+        try {
+            return JSON.parse(data);
+        } catch (parseError) {
+            console.error('Error parsing art data file (invalid JSON):', parseError);
+            return {};
+        }
     } catch (error) {
         if (error.code === 'ENOENT') return {}; // Return empty object if no data yet
         console.error('Error reading art data file:', error);
