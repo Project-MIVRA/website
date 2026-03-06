@@ -514,7 +514,8 @@ app.get('/api/printers/:id/camera', (req, res) => {
     const printer = printers.find(p => p.id === printerId);
     if (!printer) return res.status(404).send('Printer not found');
 
-    const options = { hostname: printer.ip, path: printer.camPath, method: 'GET' };
+    const controller = new AbortController();
+    const options = { hostname: printer.ip, path: printer.camPath, method: 'GET', signal: controller.signal };
     const proxyReq = http.request(options, (proxyRes) => {
         res.writeHead(proxyRes.statusCode, proxyRes.headers);
         proxyRes.pipe(res);
@@ -523,7 +524,7 @@ app.get('/api/printers/:id/camera', (req, res) => {
         console.error(`Camera proxy error ${printer.id}:`, e);
         if (!res.headersSent) res.status(500).send('Error proxying stream');
     });
-    req.on('close', () => proxyReq.abort());
+    req.on('close', () => controller.abort());
     proxyReq.end();
 });
 
