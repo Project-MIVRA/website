@@ -259,6 +259,45 @@ function getSafeTempPath(tempPath) {
     return resolved;
 }
 
+/**
+ * Sanitize generic text input for art metadata.
+ * - Coerces to string
+ * - Trims whitespace
+ * - Truncates to a maximum length
+ * - Escapes HTML to avoid injection when rendered
+ */
+function sanitizeArtField(value, maxLength) {
+    if (!value) return undefined;
+    let str = String(value).trim();
+    if (!str) return undefined;
+    if (typeof maxLength === 'number' && maxLength > 0 && str.length > maxLength) {
+        str = str.slice(0, maxLength);
+    }
+    // escapeHtml is defined elsewhere in this file and used for email content.
+    return escapeHtml(str);
+}
+
+/**
+ * Sanitize artist link:
+ * - Validates URL
+ * - Allows only http/https
+ * - Applies generic field sanitization and length limits
+ */
+function sanitizeArtLink(value, maxLength) {
+    const sanitized = sanitizeArtField(value, maxLength);
+    if (!sanitized) return undefined;
+    try {
+        const url = new URL(sanitized);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            return undefined;
+        }
+        return url.toString();
+    } catch (e) {
+        // Invalid URL; drop it rather than storing unsafe content
+        return undefined;
+    }
+}
+
 // GET /api/art - Get current art info
 app.get('/api/art', async (req, res) => {
     try {
@@ -284,6 +323,11 @@ app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => 
         let currentData = await readArtData();
         let newImageUrl = imageUrl || currentData.imageUrl;
 
+        // Sanitize text fields before storing or rendering
+        const cleanArtistName = sanitizeArtField(artistName, 100);
+        const cleanDescription = sanitizeArtField(description, 1000);
+        const cleanArtistLink = sanitizeArtLink(artistLink, 300);
+
         // If a new file is uploaded, process it
         if (req.file && safeTempPath) {
             const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
@@ -299,9 +343,9 @@ app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => 
 
         const updatedData = {
             imageUrl: newImageUrl,
-            artistName: artistName || currentData.artistName,
-            artistLink: artistLink || currentData.artistLink,
-            description: description || currentData.description
+            artistName: cleanArtistName || currentData.artistName,
+            artistLink: cleanArtistLink || currentData.artistLink,
+            description: cleanDescription || currentData.description
         };
 
         await writeArtData(updatedData);
