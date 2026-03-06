@@ -74,6 +74,30 @@ const upload = multer({ dest: TEMP_DIR });
 
 const app = express();
 
+const rateLimit = require('express-rate-limit');
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+    message: { message: 'Too many requests from this IP, please try again after 15 minutes.' },
+    standardHeaders: true, 
+    legacyHeaders: false, 
+});
+
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 60,
+    message: { message: 'Upload limit reached. Please try again later.' }
+});
+
+const suggestionLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { message: 'Too many suggestions submitted. Please try again later.' }
+});
+
+app.use('/api', apiLimiter);
+
 // --- Middleware ---
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
