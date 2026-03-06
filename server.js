@@ -45,7 +45,7 @@ const TEMP_DIR = path.join(__dirname, 'temp_uploads');
 
 // Environment
 const { 
-    NODE_ENV, BASE_URL, STEAM_API_KEY, STEAM_USER_ID,
+    BASE_URL, STEAM_API_KEY, STEAM_USER_ID,
     SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN,
     GIF_UPLOAD_PASSWORD
 } = process.env;
