@@ -13,6 +13,34 @@ const multer = require('multer');
 const sharp = require('sharp');
 const ffmpeg = require('fluent-ffmpeg');
 
+// Directory where uploaded temp files are stored
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+/**
+ * Safely delete a temporary upload file, ensuring the path stays within UPLOADS_DIR.
+ */
+async function safeUnlinkTemp(tempPath) {
+    if (!tempPath) return;
+
+    try {
+        const resolvedTemp = path.resolve(tempPath);
+        let realTemp;
+        try {
+            realTemp = await fs.realpath(resolvedTemp);
+        } catch (e) {
+            realTemp = resolvedTemp;
+        }
+
+        const normalizedUploadsDir = path.resolve(UPLOADS_DIR) + path.sep;
+        if (realTemp === path.resolve(UPLOADS_DIR) || realTemp.startsWith(normalizedUploadsDir)) {
+            try {
+                await fs.unlink(realTemp);
+            } catch (e) {
+            }
+        }
+    } catch (e) {
+    }
+}
 // Simple HTML escaping to prevent HTML injection in generated content (e.g., emails)
 function escapeHtml(value) {
     if (value === null || value === undefined) return '';
@@ -199,7 +227,7 @@ app.post('/api/gifs', uploadLimiter, upload.single('file'), async (req, res) => 
         const { password, filename } = req.body;
 
         if (password !== GIF_UPLOAD_PASSWORD) {
-            if (tempPath) await fs.unlink(tempPath);
+            await safeUnlinkTemp(tempPath);
             return res.status(403).json({ message: 'Invalid upload code.' });
         }
 
@@ -213,7 +241,7 @@ app.post('/api/gifs', uploadLimiter, upload.single('file'), async (req, res) => 
 
         // Reject if the resulting name is empty or unreasonably long
         if (!safeBaseName || safeBaseName.length === 0 || safeBaseName.length > 100) {
-            if (tempPath) await fs.unlink(tempPath);
+            await safeUnlinkTemp(tempPath);
             return res.status(400).json({ message: "Invalid filename." });
         }
 
@@ -225,7 +253,7 @@ app.post('/api/gifs', uploadLimiter, upload.single('file'), async (req, res) => 
 
         try {
             await fs.access(finalPath);
-            if (tempPath) await fs.unlink(tempPath);
+            await safeUnlinkTemp(tempPath);
             return res.status(409).json({ message: 'Filename already in use. Please choose another.' });
         } catch (e) {
         }
@@ -247,19 +275,17 @@ app.post('/api/gifs', uploadLimiter, upload.single('file'), async (req, res) => 
                     .on('error', reject);
             });
         } else {
-            if (tempPath) await fs.unlink(tempPath);
+            await safeUnlinkTemp(tempPath);
             return res.status(400).json({ message: 'Unsupported file type. Use Image or Video.' });
         }
 
-        await fs.unlink(tempPath);
+        await safeUnlinkTemp(tempPath);
         
         res.json({ message: 'File uploaded and converted successfully!', filename: finalName });
 
     } catch (error) {
         console.error("Upload error:", error);
-        if (tempPath) {
-            try { await fs.unlink(tempPath); } catch (e) {}
-        }
+        await safeUnlinkTemp(tempPath);
         res.status(500).json({ message: 'Server error during processing.' });
     }
 });
