@@ -203,9 +203,23 @@ app.post('/api/gifs', uploadLimiter, upload.single('file'), async (req, res) => 
             return res.status(403).json({ message: 'Invalid upload code.' });
         }
 
-        let finalName = filename ? filename.trim() : req.file.originalname.replace(/\.[^/.]+$/, "");
-        finalName = finalName.replace(/[^a-z0-9\-_]/gi, '_');
-        if (!finalName.toLowerCase().endsWith('.gif')) finalName += '.gif';
+        // Derive a safe base name from user input or original filename
+        const rawName = filename && typeof filename === 'string'
+            ? filename.trim()
+            : req.file.originalname.replace(/\.[^/.]+$/, "");
+
+        // Allow only letters, digits, dash and underscore in the base name
+        let safeBaseName = rawName.replace(/[^a-zA-Z0-9_-]/g, "");
+
+        // Reject if the resulting name is empty or unreasonably long
+        if (!safeBaseName || safeBaseName.length === 0 || safeBaseName.length > 100) {
+            if (tempPath) await fs.unlink(tempPath);
+            return res.status(400).json({ message: "Invalid filename." });
+        }
+
+        const finalName = safeBaseName.toLowerCase().endsWith('.gif')
+            ? safeBaseName
+            : safeBaseName + '.gif';
 
         const finalPath = path.join(GIFS_DIR, finalName);
 
