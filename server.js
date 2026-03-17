@@ -13,11 +13,8 @@ const multer = require('multer');
 const sharp = require('sharp');
 const ffmpeg = require('fluent-ffmpeg');
 
-// Directory where uploaded temp files are stored
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-
 /**
- * Safely delete a temporary upload file, ensuring the path stays within UPLOADS_DIR.
+ * Safely delete a temporary upload file, ensuring the path stays within TEMP_DIR.
  */
 async function safeUnlinkTemp(tempPath) {
     if (!tempPath) return;
@@ -31,8 +28,8 @@ async function safeUnlinkTemp(tempPath) {
             realTemp = resolvedTemp;
         }
 
-        const normalizedUploadsDir = path.resolve(UPLOADS_DIR) + path.sep;
-        if (realTemp === path.resolve(UPLOADS_DIR) || realTemp.startsWith(normalizedUploadsDir)) {
+        const normalizedTempDir = path.resolve(TEMP_DIR) + path.sep;
+        if (realTemp === path.resolve(TEMP_DIR) || realTemp.startsWith(normalizedTempDir)) {
             try {
                 await fs.unlink(realTemp);
             } catch (e) {
