@@ -424,7 +424,16 @@ app.post('/api/wishlist', async (req, res) => {
         if (!name) return res.status(400).json({ message: 'Item name is required.' });
         
         const items = await readWishlistData();
-        const newItem = { id: generateUniqueId(), name, description: description || '', price: price || '', link: link || '', imageUrl: imageUrl || '', purchased: false, addedAt: new Date().toISOString() };
+        const newItem = {
+            id: generateUniqueId(),
+            name,
+            description: description || '',
+            price: price || '',
+            link: link || '',
+            imageUrl: imageUrl || '',
+            purchased: false,
+            addedAt: new Date().toISOString(),
+        };
         items.push(newItem);
         await writeWishlistData(items);
         res.status(201).json(newItem);
