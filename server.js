@@ -188,19 +188,47 @@ function generateUniqueId() {
 
 const getSpotifyAccessToken = async () => {
     // Note: Updated URLs to actual Spotify endpoints in constants above
-    const response = await fetch(TOKEN_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Basic ' + Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64'),
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            refresh_token: SPOTIFY_REFRESH_TOKEN
-        })
-    });
-    const data = await response.json();
-    return data.access_token;
+    try {
+        const response = await fetch(TOKEN_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Basic ' + Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64'),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: SPOTIFY_REFRESH_TOKEN
+            })
+        });
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            console.error('Failed to parse Spotify token response as JSON:', parseError);
+            throw new Error('Failed to parse Spotify token response.');
+        }
+
+        if (!response.ok) {
+            console.error('Spotify token request failed:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: data
+            });
+            throw new Error(`Spotify token request failed with status ${response.status}`);
+        }
+
+        if (!data || typeof data.access_token !== 'string' || data.access_token.length === 0) {
+            console.error('Spotify token response missing access_token field:', data);
+            throw new Error('Spotify token response did not contain an access token.');
+        }
+
+        return data.access_token;
+    } catch (error) {
+        // Log and rethrow to ensure callers are aware of token retrieval failures
+        console.error('Error while retrieving Spotify access token:', error);
+        throw error;
+    }
 };
 
 // --- GIF & UPLOAD LOGIC ---
