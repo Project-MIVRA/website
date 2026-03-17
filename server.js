@@ -13,11 +13,8 @@ const multer = require('multer');
 const sharp = require('sharp');
 const ffmpeg = require('fluent-ffmpeg');
 
-// Directory where uploaded temp files are stored
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-
 /**
- * Safely delete a temporary upload file, ensuring the path stays within UPLOADS_DIR.
+ * Safely delete a temporary upload file, ensuring the path stays within TEMP_DIR.
  */
 async function safeUnlinkTemp(tempPath) {
     if (!tempPath) return;
@@ -31,8 +28,8 @@ async function safeUnlinkTemp(tempPath) {
             realTemp = resolvedTemp;
         }
 
-        const normalizedUploadsDir = path.resolve(UPLOADS_DIR) + path.sep;
-        if (realTemp === path.resolve(UPLOADS_DIR) || realTemp.startsWith(normalizedUploadsDir)) {
+        const normalizedTempDir = path.resolve(TEMP_DIR) + path.sep;
+        if (realTemp === path.resolve(TEMP_DIR) || realTemp.startsWith(normalizedTempDir)) {
             try {
                 await fs.unlink(realTemp);
             } catch (e) {
@@ -188,19 +185,47 @@ function generateUniqueId() {
 
 const getSpotifyAccessToken = async () => {
     // Note: Updated URLs to actual Spotify endpoints in constants above
-    const response = await fetch(TOKEN_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Basic ' + Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64'),
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            refresh_token: SPOTIFY_REFRESH_TOKEN
-        })
-    });
-    const data = await response.json();
-    return data.access_token;
+    try {
+        const response = await fetch(TOKEN_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Basic ' + Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64'),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: SPOTIFY_REFRESH_TOKEN
+            })
+        });
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            console.error('Failed to parse Spotify token response as JSON:', parseError);
+            throw new Error('Failed to parse Spotify token response.');
+        }
+
+        if (!response.ok) {
+            console.error('Spotify token request failed:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: data
+            });
+            throw new Error(`Spotify token request failed with status ${response.status}`);
+        }
+
+        if (!data || typeof data.access_token !== 'string' || data.access_token.length === 0) {
+            console.error('Spotify token response missing access_token field:', data);
+            throw new Error('Spotify token response did not contain an access token.');
+        }
+
+        return data.access_token;
+    } catch (error) {
+        // Log and rethrow to ensure callers are aware of token retrieval failures
+        console.error('Error while retrieving Spotify access token:', error);
+        throw error;
+    }
 };
 
 // --- GIF & UPLOAD LOGIC ---
@@ -363,8 +388,8 @@ app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => 
         const { password, artistName, artistLink, description, imageUrl } = req.body;
 
         if (password !== GIF_UPLOAD_PASSWORD) { // Reuse existing password for simplicity
-             if (safeTempPath) await fs.unlink(safeTempPath);
-             return res.status(403).json({ message: 'Invalid upload code.' });
+            if (safeTempPath) await fs.unlink(safeTempPath);
+            return res.status(403).json({ message: 'Invalid upload code.' });
         }
 
         let currentData = await readArtData();
@@ -424,7 +449,16 @@ app.post('/api/wishlist', async (req, res) => {
         if (!name) return res.status(400).json({ message: 'Item name is required.' });
         
         const items = await readWishlistData();
-        const newItem = { id: generateUniqueId(), name, description: description || '', price: price || '', link: link || '', imageUrl: imageUrl || '', purchased: false, addedAt: new Date().toISOString() };
+        const newItem = {
+            id: generateUniqueId(),
+            name,
+            description: description || '',
+            price: price || '',
+            link: link || '',
+            imageUrl: imageUrl || '',
+            purchased: false,
+            addedAt: new Date().toISOString(),
+        };
         items.push(newItem);
         await writeWishlistData(items);
         res.status(201).json(newItem);
