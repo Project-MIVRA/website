@@ -363,8 +363,8 @@ app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => 
         const { password, artistName, artistLink, description, imageUrl } = req.body;
 
         if (password !== GIF_UPLOAD_PASSWORD) { // Reuse existing password for simplicity
-             if (safeTempPath) await fs.unlink(safeTempPath);
-             return res.status(403).json({ message: 'Invalid upload code.' });
+            if (safeTempPath) await fs.unlink(safeTempPath);
+            return res.status(403).json({ message: 'Invalid upload code.' });
         }
 
         let currentData = await readArtData();
