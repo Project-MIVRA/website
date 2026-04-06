@@ -186,7 +186,6 @@ function generateUniqueId() {
 }
 
 const getSpotifyAccessToken = async () => {
-    // Note: Updated URLs to actual Spotify endpoints in constants above
     try {
         const response = await fetch(TOKEN_ENDPOINT, {
             method: 'POST',

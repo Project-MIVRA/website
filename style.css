@@ -4,7 +4,7 @@ html {
 
 body {
     background-color: #1a1a1a;
-    background-image: url('/Assets/Mini-background.avif');
+    background-image: url('/Assets/VRChat_2024-12-20_23-00-03.164_3840x2160.avif'), url('/Assets/VRChat_2024-12-20_23-00-03.164_3840x2160.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
@@ -58,7 +58,7 @@ a {
 /* --- Shared Page Styles (Wishlist/Gifs) --- */
 .page-background {
     background-color: #1a1a1a;
-    background-image: url('/Assets/Mini-background.avif');
+    background-image: url('/Assets/VRChat_2024-12-20_23-00-03.164_3840x2160.avif'), url('/Assets/VRChat_2024-12-20_23-00-03.164_3840x2160.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
