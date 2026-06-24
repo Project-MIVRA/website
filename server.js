@@ -446,7 +446,7 @@ app.get('/api/wishlist', async (req, res) => {
 
 app.post('/api/wishlist', async (req, res) => {
     try {
-        const { name, description, price, link, imageUrl } = req.body;
+        const { name, description, price, link, imageUrl, priority } = req.body;
         if (!name) return res.status(400).json({ message: 'Item name is required.' });
         
         const items = await readWishlistData();
@@ -457,6 +457,7 @@ app.post('/api/wishlist', async (req, res) => {
             price: price || '',
             link: link || '',
             imageUrl: imageUrl || '',
+            priority: priority !== undefined && priority !== '' ? parseInt(priority, 10) : 999,
             purchased: false,
             addedAt: new Date().toISOString(),
         };
@@ -471,7 +472,7 @@ app.post('/api/wishlist', async (req, res) => {
 app.put('/api/wishlist/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, link, imageUrl, purchased } = req.body;
+        const { name, description, price, link, imageUrl, purchased, priority } = req.body;
         let items = await readWishlistData();
         const itemIndex = items.findIndex(item => item.id === id);
         if (itemIndex === -1) return res.status(404).json({ message: 'Item not found.' });
@@ -483,6 +484,9 @@ app.put('/api/wishlist/:id', async (req, res) => {
         if (link !== undefined) updatedItem.link = link;
         if (imageUrl !== undefined) updatedItem.imageUrl = imageUrl;
         if (purchased !== undefined) updatedItem.purchased = purchased;
+        if (priority !== undefined) {
+            updatedItem.priority = priority === '' ? 999 : parseInt(priority, 10);
+        }
         
         items[itemIndex] = updatedItem;
         await writeWishlistData(items);

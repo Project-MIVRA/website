@@ -55,6 +55,11 @@ function displayMessage(text, type = 'success', targetElement = null, isSticky =
     }
 }
 
+function getPriorityBadgeHTML(priority) {
+    if (priority === undefined || priority === null || priority === '' || priority === 999) return '';
+    return `<div style="position: absolute; top: 15px; left: 15px; background-color: #3367e1; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.9em; font-weight: bold; font-family: Arial, sans-serif; box-shadow: 0 4px 8px rgba(0,0,0,0.6); z-index: 10;">#${priority}</div>`;
+}
+
 function generateId() {
     // This function is less critical if the backend assigns IDs.
     // It can be used for client-side temporary IDs if needed, but persistent IDs should come from the backend.
@@ -124,6 +129,10 @@ function showEditModal(item) {
                             <label for="editItemImage" style="display: block; font-size: 0.875rem; font-weight: 500; color: #fff; margin-bottom: 0.5rem;">Image URL</label>
                             <input type="text" id="editItemImage" value="${item.imageUrl || ''}" style="${inputStyle}">
                         </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="editItemPriority" style="display: block; font-size: 0.875rem; font-weight: 500; color: #fff; margin-bottom: 0.5rem;">Priority (1 is highest)</label>
+                            <input type="number" id="editItemPriority" value="${item.priority !== undefined && item.priority !== 999 ? item.priority : ''}" style="${inputStyle}" placeholder="Optional">
+                        </div>
                         <div style="margin-bottom: 1rem; display: flex; align-items: center;">
                             <input type="checkbox" id="editItemPurchased" ${item.purchased ? 'checked' : ''} style="height: 1rem; width: 1rem; accent-color: #3367e1;">
                             <label for="editItemPurchased" style="margin-left: 0.5rem; font-size: 0.875rem; color: #fff;">Mark as Purchased</label>
@@ -157,6 +166,7 @@ function showEditModal(item) {
                 link: document.getElementById('editItemLink').value.trim(),
                 imageUrl: document.getElementById('editItemImage').value.trim(),
                 purchased: document.getElementById('editItemPurchased').checked,
+                priority: document.getElementById('editItemPriority').value.trim(),
             };
 
             // Basic validation
@@ -251,6 +261,7 @@ function initializeAdminPage() {
         const itemImage = document.getElementById('itemImage').value.trim();
         const itemPrice = document.getElementById('itemPrice').value.trim();
         const itemLink = document.getElementById('itemLink').value.trim();
+        const itemPriority = document.getElementById('itemPriority').value.trim();
         
         // Ensure a message box exists within the form for form-specific messages
         let formMessageBox = addItemForm.querySelector('#formMessageBox');
@@ -281,6 +292,7 @@ function initializeAdminPage() {
             imageUrl: itemImage,
             price: itemPrice,
             link: itemLink,
+            priority: itemPriority
             // addedAt timestamp should be set by the backend upon creation.
         };
 
@@ -392,6 +404,7 @@ function renderAdminItems(items, container, loadingMsgId, msgBox) {
     items.forEach(item => {
         const itemElement = document.createElement('div');
         itemElement.className = 'box';
+        itemElement.style.position = 'relative'; // <--- Ensure positioning is set for the absolute badge
         if (item.purchased) {
             itemElement.style.opacity = '0.6';
         }
@@ -400,7 +413,7 @@ function renderAdminItems(items, container, loadingMsgId, msgBox) {
         const imageSrc = item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : placeholderImage;
 
         itemElement.innerHTML = `
-            <div style="display: flex; flex-direction: column; height: 100%;">
+            ${getPriorityBadgeHTML(item.priority)} <div style="display: flex; flex-direction: column; height: 100%;">
                 <img src="${imageSrc}" alt="${item.name || 'Wishlist Item'}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 4px; margin-bottom: 15px;" onerror="this.onerror=null;this.src='${placeholderImage}';">
                 <div style="flex-grow: 1;">
                     <h3 style="font-weight: bold; font-size: 1.2em; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;" title="${item.name}">${item.name}</h3>
@@ -446,7 +459,8 @@ function renderPublicItems(items, container, loadingMsgId, msgBox) {
     // Render each item
     items.forEach(item => {
         const itemElement = document.createElement('li');
-        itemElement.className = 'wishlist-item'; // Class from user's public HTML for styling
+        itemElement.className = 'wishlist-item'; 
+        itemElement.style.position = 'relative';
         if (item.purchased) {
             itemElement.classList.add('purchased');
         }
@@ -455,7 +469,7 @@ function renderPublicItems(items, container, loadingMsgId, msgBox) {
         const imageSrc = item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : placeholderImage;
 
         itemElement.innerHTML = `
-            <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer">
+            ${getPriorityBadgeHTML(item.priority)} <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer">
                 <img src="${imageSrc}" alt="${item.name || 'Wishlist Item'}" onerror="this.onerror=null;this.src='${placeholderImage}';">
                 <div class="item-info">
                     <div class="item-title">${item.name || 'Untitled Item'}</div>
@@ -486,7 +500,14 @@ async function loadAndRenderItemsFromBackend(isAdminPage, container, loadingMsgI
         const items = await response.json(); // Parse JSON response
         
         // Sort items by 'addedAt' client-side. Assumes backend provides 'addedAt'.
+        // Sort items by priority first, then 'addedAt' fallback.
         items.sort((a, b) => {
+            const prioA = (a.priority !== undefined && a.priority !== null && a.priority !== '') ? Number(a.priority) : 999;
+            const prioB = (b.priority !== undefined && b.priority !== null && b.priority !== '') ? Number(b.priority) : 999;
+            
+            if (prioA !== prioB) return prioA - prioB; // Sort by priority ascending (1 is first)
+            
+            // Fallback to date
             const timeA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
             const timeB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
             return timeB - timeA; // Sorts newest first
