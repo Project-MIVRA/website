@@ -9,3 +9,4 @@ yarn-error.log
 /wishlist/wishlist-data.json
 art/art-data.json
 /.vs
+/polls
