@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poll</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="icon" href="/Assets/Mini-1.png">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            background-image: url('/Assets/Mini-background.avif');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            padding: 20px; margin: 0;
+            display: flex; justify-content: center;
+        }
+        .container { width: 100%; max-width: 600px; margin-top: 5vh;}
+        .form-input {
+            width: 100%; padding: 10px; font-family: monospace; font-size: 14px;
+            background: black; color: #fff; border: 1px solid #3367e1;
+            border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; margin-top: 5px;
+        }
+        .option-label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #ccc; }
+        .button {
+            padding: 10px 15px; font-family: monospace; font-size: 16px;
+            background: #3367e1; color: #fff; border: 1px solid #3367e1;
+            border-radius: 10px; cursor: pointer; width: 100%; margin-top: 20px;
+        }
+        .button:hover { background: #264bb0; }
+        .question-block { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="box" id="pollContainer">
+            <h1 id="pollTitle">Loading Poll...</h1>
+            <p id="pollDesc"></p>
+            <form id="pollForm" style="display:none; margin-top: 20px;"></form>
+            <div id="pollMessage" style="text-align: center; margin-top: 20px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <script src="poll.js"></script>
+</body>
+</html>

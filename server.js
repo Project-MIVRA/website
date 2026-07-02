@@ -59,12 +59,16 @@ const ART_DATA_FILE_PATH = path.join(__dirname, 'art', 'art-data.json');
 const GIFS_DIR = path.join(__dirname, 'gifs');
 const ART_DIR = path.join(__dirname, 'art');
 const TEMP_DIR = path.join(__dirname, 'temp_uploads');
+const POLLS_DIR = path.join(__dirname, 'polls');
+const POLLS_DATA_FILE = path.join(POLLS_DIR, 'polls-data.json');
+const POLL_RESPONSES_FILE = path.join(POLLS_DIR, 'poll-responses.json');
 
 (async () => {
     try {
         await fs.mkdir(GIFS_DIR, { recursive: true });
         await fs.mkdir(ART_DIR, { recursive: true });
         await fs.mkdir(TEMP_DIR, { recursive: true });
+        await fs.mkdir(POLLS_DIR, { recursive: true });
     } catch (e) { console.error("Error creating directories", e); }
 })();
 
@@ -72,7 +76,8 @@ const TEMP_DIR = path.join(__dirname, 'temp_uploads');
 const { 
     BASE_URL, STEAM_API_KEY, STEAM_USER_ID,
     SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN,
-    GIF_UPLOAD_PASSWORD
+    GIF_UPLOAD_PASSWORD,
+    ADMIN_USERNAME, ADMIN_PASSWORD
 } = process.env;
 
 // Spotify Credentials
@@ -129,7 +134,37 @@ app.use('/api', apiLimiter);
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 app.use('/wishlist', express.static(path.join(__dirname, 'wishlist')));
-app.use('/art', express.static(path.join(__dirname, 'art'))); // Serve art folder
+app.use('/art', express.static(path.join(__dirname, 'art')));
+
+// --- ADD THIS NEW ADMIN AUTHENTICATION BLOCK ---
+const activeAdminTokens = new Set();
+
+app.post('/api/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        const token = crypto.randomBytes(32).toString('hex');
+        activeAdminTokens.add(token);
+        res.json({ token });
+    } else {
+        res.status(401).json({ message: 'Invalid credentials' });
+    }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) {
+        activeAdminTokens.delete(auth.split(' ')[1]);
+    }
+    res.json({ message: 'Logged out' });
+});
+
+function requireAdmin(req, res, next) {
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ message: 'Unauthorized' });
+    const token = auth.split(' ')[1];
+    if (!activeAdminTokens.has(token)) return res.status(401).json({ message: 'Unauthorized' });
+    next();
+}
 
 // --- Helper Functions ---
 async function readWishlistData() {
@@ -433,6 +468,115 @@ app.post('/api/art', uploadLimiter, upload.single('image'), async (req, res) => 
     }
 });
 
+async function readJsonFile(filePath, defaultVal = []) {
+    try {
+        await fs.access(filePath);
+        const data = await fs.readFile(filePath, 'utf8');
+        return data.trim() === '' ? defaultVal : JSON.parse(data);
+    } catch (error) {
+        return defaultVal;
+    }
+}
+
+async function writeJsonFile(filePath, data) {
+    try {
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        throw new Error(`Failed to save data to ${filePath}`);
+    }
+}
+
+app.get('/api/polls', async (req, res) => {
+    const polls = await readJsonFile(POLLS_DATA_FILE);
+    const publicPolls = polls.filter(p => p.active).map(p => ({ id: p.id, title: p.title, description: p.description }));
+    res.json(publicPolls);
+});
+
+app.get('/api/admin/polls', requireAdmin, async (req, res) => {
+    const polls = await readJsonFile(POLLS_DATA_FILE);
+    res.json(polls);
+});
+
+app.post('/api/polls', requireAdmin, async (req, res) => {
+    try {
+        const { title, description, questions } = req.body;
+        if (!title || !questions || !questions.length) return res.status(400).json({ message: 'Title and questions required.' });
+        const polls = await readJsonFile(POLLS_DATA_FILE);
+        const newPoll = {
+            id: generateUniqueId(),
+            title: escapeHtml(title),
+            description: escapeHtml(description),
+            questions: questions.map(q => ({
+                id: generateUniqueId(),
+                type: q.type, 
+                text: escapeHtml(q.text),
+                options: q.options ? q.options.map(o => escapeHtml(o)) : []
+            })),
+            active: true,
+            createdAt: new Date().toISOString()
+        };
+        polls.push(newPoll);
+        await writeJsonFile(POLLS_DATA_FILE, polls);
+        res.status(201).json(newPoll);
+    } catch (e) { res.status(500).json({ message: 'Failed to create poll' }); }
+});
+
+app.get('/api/polls/:id', async (req, res) => {
+    const polls = await readJsonFile(POLLS_DATA_FILE);
+    const poll = polls.find(p => p.id === req.params.id && p.active);
+    if (!poll) return res.status(404).json({ message: 'Poll not found or inactive' });
+    res.json(poll);
+});
+
+app.delete('/api/polls/:id', requireAdmin, async (req, res) => {
+    let polls = await readJsonFile(POLLS_DATA_FILE);
+    polls = polls.filter(p => p.id !== req.params.id);
+    await writeJsonFile(POLLS_DATA_FILE, polls);
+    res.json({ message: 'Poll deleted' });
+});
+
+app.post('/api/polls/:id/respond', async (req, res) => {
+    try {
+        const polls = await readJsonFile(POLLS_DATA_FILE);
+        const poll = polls.find(p => p.id === req.params.id && p.active);
+        if (!poll) return res.status(404).json({ message: 'Poll not found' });
+        const { responses } = req.body; 
+        if (!responses || !Array.isArray(responses)) return res.status(400).json({ message: 'Invalid responses' });
+
+        const safeResponses = [];
+        for (const r of responses) {
+            const question = poll.questions.find(q => q.id === r.questionId);
+            if (!question) continue;
+            let safeValue;
+            if (question.type === 'number') {
+                safeValue = Number(r.value);
+                if (isNaN(safeValue)) continue; 
+            } else if (question.type === 'checkbox') {
+                if (!Array.isArray(r.value)) continue;
+                safeValue = r.value.map(v => escapeHtml(String(v)));
+            } else {
+                safeValue = escapeHtml(String(r.value));
+            }
+            safeResponses.push({ questionId: question.id, value: safeValue });
+        }
+        const allResponses = await readJsonFile(POLL_RESPONSES_FILE);
+        allResponses.push({ pollId: poll.id, timestamp: new Date().toISOString(), responses: safeResponses });
+        await writeJsonFile(POLL_RESPONSES_FILE, allResponses);
+        res.json({ message: 'Response recorded successfully' });
+    } catch (e) { res.status(500).json({ message: 'Failed to record response' }); }
+});
+
+app.get('/api/polls/:id/results', requireAdmin, async (req, res) => {
+    try {
+        const polls = await readJsonFile(POLLS_DATA_FILE);
+        const poll = polls.find(p => p.id === req.params.id);
+        if (!poll) return res.status(404).json({ message: 'Poll not found' });
+        const allResponses = await readJsonFile(POLL_RESPONSES_FILE);
+        const pollResponses = allResponses.filter(r => r.pollId === poll.id);
+        res.json({ poll, totalResponses: pollResponses.length, responses: pollResponses });
+    } catch (e) { res.status(500).json({ message: 'Failed to fetch results' }); }
+});
 
 // --- Wishlist API Endpoints ---
 app.get('/api/wishlist', async (req, res) => {
@@ -444,7 +588,7 @@ app.get('/api/wishlist', async (req, res) => {
     }
 });
 
-app.post('/api/wishlist', async (req, res) => {
+app.post('/api/wishlist', requireAdmin, async (req, res) => {
     try {
         const { name, description, price, link, imageUrl, priority } = req.body;
         if (!name) return res.status(400).json({ message: 'Item name is required.' });
@@ -469,7 +613,7 @@ app.post('/api/wishlist', async (req, res) => {
     }
 });
 
-app.put('/api/wishlist/:id', async (req, res) => {
+app.put('/api/wishlist/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, price, link, imageUrl, purchased, priority } = req.body;
@@ -497,7 +641,7 @@ app.put('/api/wishlist/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/wishlist/:id', async (req, res) => {
+app.delete('/api/wishlist/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         let items = await readWishlistData();
@@ -614,7 +758,7 @@ app.get('/api/printers/:id/camera', (req, res) => {
 
 // --- Activity API Endpoints ---
 app.get('/api/activity', (req, res) => res.json(currentActivity));
-app.post('/api/activity', (req, res) => {
+app.post('/api/activity', requireAdmin, (req, res) => {
     const { text } = req.body;
     if (!text || typeof text !== 'string') return res.status(400).json({ message: 'Text required.' });
     currentActivity = { text };

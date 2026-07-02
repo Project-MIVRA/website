@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="icon" href="/Assets/Mini-1.png">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            background-image: url('/Assets/Mini-background.avif');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            padding: 20px; margin: 0;
+            display: flex; justify-content: center;
+        }
+        .container { width: 100%; max-width: 1200px; }
+        .hidden { display: none !important; }
+        .form-input {
+            width: 100%; padding: 8px; font-family: monospace; font-size: 14px;
+            background: black; color: #fff; border: 1px solid #3367e1;
+            border-radius: 10px; box-sizing: border-box; margin-bottom: 10px;
+        }
+        .button {
+            padding: 8px 12px; font-family: monospace; font-size: 14px;
+            background: black; color: #fff; border: 1px solid #3367e1;
+            border-radius: 10px; cursor: pointer; display: inline-block;
+        }
+        .button:hover { background: #3367e1; }
+        .button-danger { border-color: #e53935; color: #e53935; }
+        .button-danger:hover { background: #e53935; color: white; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; background: #000000a0; border: 2px solid #3367e1; border-radius: 10px; color: white; }
+        .tab.active { background: #3367e1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .poll-question { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; }
+        
+        .grid-container {
+            display: grid; gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen" class="container" style="max-width: 400px; margin-top: 10vh;">
+        <div class="box">
+            <h2 style="text-align: center;">Admin Login</h2>
+            <input type="text" id="loginUsername" placeholder="Username" class="form-input">
+            <input type="password" id="loginPassword" placeholder="Password" class="form-input">
+            <button id="loginBtn" class="button" style="width: 100%;">Login</button>
+            <p id="loginError" style="color: #e53935; text-align: center; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="adminDashboard" class="container hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="color: white;">Admin Dashboard</h1>
+            <button id="logoutBtn" class="button button-danger">Logout</button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-target="activityTab">Mini Activity</div>
+            <div class="tab" data-target="wishlistTab">Wishlist</div>
+            <div class="tab" data-target="pollsTab">Polls</div>
+        </div>
+
+        <div id="activityTab" class="tab-content active box">
+            <h2>Set Mini Activity</h2>
+            <input type="text" id="activityInput" class="form-input" placeholder="What are you doing? e.g. Meowing">
+            <button id="setActivityBtn" class="button">Update Activity</button>
+            <p id="activityMsg"></p>
+        </div>
+
+        <div id="wishlistTab" class="tab-content box">
+            <h2>Wishlist Manager</h2>
+            <p>Add a new item:</p>
+            <input type="text" id="wlName" class="form-input" placeholder="Name">
+            <input type="text" id="wlDesc" class="form-input" placeholder="Description">
+            <input type="text" id="wlPrice" class="form-input" placeholder="Price">
+            <input type="text" id="wlLink" class="form-input" placeholder="Link">
+            <input type="text" id="wlImage" class="form-input" placeholder="Image URL">
+            <input type="number" id="wlPriority" class="form-input" placeholder="Priority (1 is highest, optional)">
+            <button id="addWlBtn" class="button" style="background-color: #1DB954; border-color: #1DB954;">Add Item to Database</button>
+            <div id="wlMsg" style="margin: 10px 0; color: #1DB954; font-weight: bold;"></div>
+            
+            <h3 style="margin-top: 20px;">Current Items in Database</h3>
+            <div id="wlList" class="grid-container"></div>
+        </div>
+
+        <div id="pollsTab" class="tab-content box">
+            <h2>Poll Manager</h2>
+            
+            <div style="margin-bottom: 30px; border-bottom: 1px solid #444; padding-bottom: 20px;">
+                <h3>Create New Poll</h3>
+                <input type="text" id="pollTitle" class="form-input" placeholder="Poll Title">
+                <input type="text" id="pollDesc" class="form-input" placeholder="Description">
+                
+                <div id="pollQuestions"></div>
+                <button id="addQuestionBtn" class="button" style="margin-bottom: 10px;">+ Add Question</button>
+                <br>
+                <button id="createPollBtn" class="button" style="background: #1DB954; border-color: #1DB954;">Create Poll</button>
+                <p id="pollMsg" style="color: #1DB954; font-weight: bold; margin-top: 10px;"></p>
+            </div>
+
+            <h3>Active & Past Polls</h3>
+            <div id="pollsList"></div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
